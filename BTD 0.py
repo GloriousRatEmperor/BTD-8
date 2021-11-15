@@ -410,7 +410,7 @@ class Bloon(pygame.sprite.Sprite):
             #     self.SY*=self.S
             #     self.I = self.i[self.H-1]
     def make(self,which,overkill):
-        if which-overkill>-1:
+        if which+overkill>-1:
             bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                                  [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                                  [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
