@@ -415,7 +415,7 @@ class Bloon(pygame.sprite.Sprite):
                                  [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                                  [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
                                  [10, 20, 9, -5, [[5, 5]]], [20, rn + 50, 0, -11, [[4, 9]]],
-                                 [0, rn * 2 + 100, 0, -10, [[4, 10]]], ]
+                                 [0, rn * 2 + 100, 0, -10, [[4, 10]]] ]
             what=bloonlistdingus[which+overkill]
 
             # what = [speed,health,HH(wierdhelf),ID,spawn,EX,EY]
@@ -543,6 +543,7 @@ def drtM():
             drts.remove(e)
             del e
 def moida():
+    global money,income,rn
     for b in range (len(murder)):
          e=murder[0]
          murder.remove(e)
@@ -552,6 +553,8 @@ def moida():
              if e in rndbloon:
                 rndbloon.remove(e)
                 if rndbloon == []:
+                    money+=income
+                    rn+=1
                     ready()
              if e in thorned:
                  thorned.remove(e)
@@ -568,7 +571,7 @@ health=100
 ss=0
 SS=0
 def blnM():
-    global health,bloon,blns,drts2, sqares
+    global health,bloon,blns,drts2, sqares,Bloondamage
     for e in blns:
         if e.SY==0:
             e.IM=0
@@ -638,12 +641,12 @@ def blnM():
             else:
                 e.f+=2
                 if e.f>21:
-                    health-=e.H
+                    health-=e.H+Bloondamage[e.HH]
                     murder.append(e)
                     e.f=0
                     if health<0:
-                        gameo()
-  
+                        death(100,h//2-200)
+Bloondamage=[0,0,0,0,0,10,17,23,0,55,300,1420]
 power=0             
 POWER=0
 xplosions=[]           
@@ -672,16 +675,15 @@ bossH=0
 bossX=0
 bossY=0
 def sendbloon(stuff):
-    global bloons
+    global bloons,money,income
     #what is speed,health,ID,spawn,EX,EY
     bloonlistcomplete = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                        [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                        [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
                        [10, 20, 9, -5, [[5, 5]]], [20, rn + 50, 0, -11, [[4, 9]]],
-                       [0, rn * 2 + 100, 0, -10, [[4, 10]]], ]
+                       [0, rn * 2 + 100, 0, -10, [[4, 10]]] ]
     what = bloonlistcomplete[stuff[1]]
     if len(stuff)>3:
-        print(stuff)
         sent=0
         spc=stuff[3]
     else:
@@ -864,7 +866,7 @@ def upgrade():
                                         e.c=e.c+2
                                         e.DS=e.DS-5
                                         if e.F>0:
-                                            e.DS - 5
+                                            e.DS -= 5
                                         if e.DS<2:
                                             e.c=10000000
                                         e.H+=+2
@@ -1117,8 +1119,13 @@ pause()
 monksel=[loadify('drtmonk'),loadify('engineer')
          ,loadify('spikefac'),loadify('gunner'),loadify('smoldruid')]
 def death(x,y):
-    dead = fint.render("U died on round:" + str(rn-4), True, (255, 0, 0))
-    screen.blit(dead, (x, y))
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+               pygame.quit()
+        dead = fint.render("U died on round:" + str(rn-4), True, (255, 0, 0))
+        screen.blit(dead, (x, y))
+        pygame.display.update()
 io=0
 
             
@@ -1304,12 +1311,7 @@ while running:
                       data=jsonpickle.encode(me.ID))
     thing = jsonpickle.decode(r.text)
     for e in thing:
-        if e == [-1, 1]:
-            heredy+= 1
-            if heredy==3:
-                ready()
-        else:
-            updatelist[e[0]](e[1])
+        updatelist[e[0]](e[1])
     # for b in force:
     #     #PO:amount of charges, max charges po:for shield recharge cooldown, second is time of shield expiration, first is cooldonw neccessary
     #     if b.PO[0]>0:
