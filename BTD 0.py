@@ -699,8 +699,10 @@ def sendbloon(stuff):
     else:
         spc=5
         sent=1
+    if what[3]>-10:
+        what[0]+=minx(rn,60)/5
     for e in range (stuff[0]):
-        bloons.append(Bloon(-50 - e * spc,150, (what[0]+rn/5)/5
+        bloons.append(Bloon(-50 - e * spc,150, (what[0])/5
                             , what[1], 1
                             ,stuff[2], what[3], what[2], what[2],what[4],0,0,sent))
 income=25
