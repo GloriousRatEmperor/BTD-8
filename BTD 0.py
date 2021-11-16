@@ -700,7 +700,7 @@ def sendbloon(stuff):
         spc=5
         sent=1
     if what[3]>-10:
-        what[0]+=minx(rn,60)/5
+        what[0]+=min(rn,60)/5
     for e in range (stuff[0]):
         bloons.append(Bloon(-50 - e * spc,150, (what[0])/5
                             , what[1], 1
