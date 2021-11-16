@@ -3,9 +3,74 @@ import time
 from flask import Flask, request
 import jsonpickle
 import random
+from PodSixNet.Channel import Channel
+from PodSixNet.Server import Server
 import pygame
 import math
 countdown=-1
+nextround=0
+class player_channel(Channel):
+    def __init__(self, conn=None, addr=(), server=None, map=None):
+        super().__init__(conn=conn, addr=addr, server=server, map=map)
+        self.server=server
+
+    def conn(self):
+        if self.server is not None:
+            self.server.join(self)
+
+    def dis(self):
+        if self.server is not None:
+            self.server.leave(self)
+
+    def Network(self, data):
+        print(data)
+
+    def Network_join(self, data):
+        self.conn()
+
+    def Network_start(self,data):
+        global players
+        if len(players)<2:
+            newplayer = player()
+            players.append(newplayer)
+            self.Send({"action": "gitplayer", "id": len(players)})
+        else:
+            self.Send({"action": "gitplayer", "id": 10})
+
+    def Network_send(self, data):
+        for channel in self.server.all_channels:
+            if channel is not self:
+                channel.Send({"action": "ugotbloonsmon", "takedis":data["what"]})
+
+    def Network_ready(self,data):
+        global nextround
+        nextround+=1
+        if nextround==2:
+            rnd(0)
+class cw_server(Server):
+    channelClass = player_channel
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.all_channels=[]
+
+    def Connected(self, channel, addr):
+        if len(self.all_channels)==2:
+            channel.Send({"action": "gitplayer", "id": 10})
+        else:
+            self.all_channels.append(channel)
+
+    def join(self, channel):
+        pass
+
+    def leave(self, channel):
+        pass
+
+    def tick(self, dt=0):
+        self.Pump()
+
+
+
 class tile(pygame.sprite.Sprite):
     def __init__(self, X, Y, I):
         self.X = X
@@ -58,19 +123,12 @@ class shop(object):
         if random.randint(0,10)<10:
             if self.type==2:
                 self.type=0
-for e in range(1000):
-    shops.append(shop())
-
-for e in range(500):
-    moobs.append(moob())
 
 
 class timer(object):
     def __init__(self,ID):
         self.T="hu ha"
         self.ID=ID
-
-app = Flask(__name__)
 
 f=1
 updates=[]
@@ -79,6 +137,7 @@ def rnd(b):
     global rn,players,nextround
     if b==0:
         nextround = 0
+        rn+=1
     regrow = random.choice([0, 1])
     if regrow == 1:
         regrow = random.randint(50, 350)
@@ -103,67 +162,70 @@ def rnd(b):
         else:
             ch = random.randint(1, 3)
             #[howmany, which, regrow (random.randint(50,350) is standard)]
-    for e in players:
-        e.updates.append([0,[int(rn / int(ch / 2 + 1)),ch,regrow,spc]])
+    for channel in srvr.all_channels:
+        channel.Send({"action": "ugotbloonsmon", "takedis": [int(rn / int(ch / 2 + 1)), ch, regrow, spc]})
     if random.randint(int(rn / 3), rn) > 10 + b * 2:
         rnd(b + 1, [])
 
+#
+# @app.route('/anynew', methods = ['POST'])
+# def Anynew():
+#     update = jsonpickle.decode(request.get_data())
+#     for e in players:
+#         if e.ID==update:
+#             wheiz=e.updates
+#             e.updates = []
+#             return jsonpickle.encode(wheiz)
+#
+# @app.route('/start')
+# def start():
+#     global players
+#     if len(players)<2:
+#         newplayer = player()
+#         players.append(newplayer)
+#         return jsonpickle.encode(newplayer)
+#     else:
+#         print(players)
+#         return jsonpickle.encode("There are already 2 players")
+# @app.route('/sendbloon', methods = ['POST'])
+# def sendbloons():
+#     global players
+#     update = jsonpickle.decode(request.get_data())
+#     for e in players:
+#         if not e.ID==update[0]:
+#             e.updates.append([0,update[1]])
+#     return jsonpickle.encode("ayay sir")
+# @app.route('/sendready', methods = ['POST'])
+# def sendstuff():
+#     global nextround
+#     nextround+=1
+#     if nextround==2:
+#         rnd(0)
+#     return jsonpickle.encode("ayay sir")
+#
+# @app.route('/MyUpdates', methods = ['POST'])
+# def giveupdate():
+#     global players
+#     update = jsonpickle.decode(request.get_data())
+#     for e in players:
+#         if e.ID==update:
+#             dododoo=[e.ID]
+#             return jsonpickle.encode(dododoo)
+#     print('clientnotfounderror')
+#     return jsonpickle.encode([])
+#
+# @app.route('/players', methods = ['GET'])
+# def playerget():
+#     global players
+#     return jsonpickle.encode(players)
+#
+# @app.route('/mobbos')
+# def mobboser():
+#     global moobs
+#     return jsonpickle.encode(moobs)
 
-@app.route('/anynew', methods = ['POST'])
-def Anynew():
-    update = jsonpickle.decode(request.get_data())
-    for e in players:
-        if e.ID==update:
-            wheiz=e.updates
-            e.updates = []
-            return jsonpickle.encode(wheiz)
-
-@app.route('/start')
-def start():
-    global players
-    if len(players)<2:
-        newplayer = player()
-        players.append(newplayer)
-        return jsonpickle.encode(newplayer)
-    else:
-        print(players)
-        return jsonpickle.encode("There are already 2 players")
-@app.route('/sendbloon', methods = ['POST'])
-def sendbloons():
-    global players
-    update = jsonpickle.decode(request.get_data())
-    for e in players:
-        if not e.ID==update[0]:
-            e.updates.append([0,update[1]])
-    return jsonpickle.encode("ayay sir")
-nextround=0
-@app.route('/sendready', methods = ['POST'])
-def sendstuff():
-    global nextround
-    nextround+=1
-    if nextround==2:
-        rnd(0)
-    return jsonpickle.encode("ayay sir")
-
-@app.route('/MyUpdates', methods = ['POST'])
-def giveupdate():
-    global players
-    update = jsonpickle.decode(request.get_data())
-    for e in players:
-        if e.ID==update:
-            dododoo=[e.ID]
-            return jsonpickle.encode(dododoo)
-    print('clientnotfounderror')
-    return jsonpickle.encode([])
-
-@app.route('/players', methods = ['GET'])
-def playerget():
-    global players
-    return jsonpickle.encode(players)
-
-@app.route('/mobbos')
-def mobboser():
-    global moobs
-    return jsonpickle.encode(moobs)
-
-app.run(host='0.0.0.0', port=5000, debug=False)
+with open("ip.txt") as ip:
+    srvr = cw_server(localaddr=(ip.read(), 5071))
+while True:
+    srvr.tick()
+    time.sleep(0.001)

@@ -4,36 +4,43 @@ import random
 import pygame
 import math
 import os
-import requests
-import jsonpickle
 import time
 from pyglet.window import key
 from pyglet.window import Window
 from pyglet.gl import *
 from pygame.locals import *
-pygame.init()
-class player(object):
-    def __init__(self,ID,X,Y,H,XP):
-        self.ID=ID
-        self.XP=XP
-        self.X=Xz
-        self.Y=Y
-        self.H =H
+from PodSixNet.Connection import connection, ConnectionListener
+
 with open("ip.txt", "r") as ip:
     ipadress=ip.read()
 
-    # r = requests.post('http://' + ipadress + ':5000/AuctionPrice', headers=headers,
-    #                   data=j
-    # r = requests.get(f'http://{ipadress}:5000/start')
-    # me = jsonpickle.decode(r.text)
-r = requests.get(f'http://{ipadress}:5000/start')
-me=jsonpickle.decode(r.text)
-try:
-    me.ID=int(me.ID)
-except:
-    for e in range(100):
-        print(me)
-    i=[]+1
+connection.DoConnect((ipadress, 5071))
+class MyNetworkListener(ConnectionListener):
+
+    def Network(self, data):
+        pass
+    def Network_gitplayer(self,data):
+        global me
+        if data["id"]<3:
+            print(data["id"])
+            me=player(data["id"])
+        else:
+            uu=1/0
+    def Network_ugotbloonsmon(self,data):
+        sendbloon(data["takedis"])
+nwl = MyNetworkListener()
+
+
+
+pygame.init()
+class player(object):
+    def __init__(self,ID):
+        self.ID=ID
+connection.Send({"action":"start","id":888690420})
+# r = requests.post('http://' + ipadress + ':5000/AuctionPrice', headers=headers,
+#                   data=j
+# r = requests.get(f'http://{ipadress}:5000/start')
+# me = jsonpickle.decode(r.text)
 def loadify(imgname):
     return pygame.image.load(f"imagesboom/{imgname}.png").convert_alpha()
 font = pygame.font.Font('freesansbold.ttf',25)
@@ -694,7 +701,6 @@ def sendbloon(stuff):
                             , what[1], 1
                             ,stuff[2], what[3], what[2], what[2],what[4],0,0,sent))
 income=25
-updatelist=[sendbloon]
 def roundshow(x,y,l):
     dead = fint.render("round" + str(l), True, (0, 255, 0))
     screen.blit(dead, (x, y))
@@ -714,8 +720,10 @@ def ready():
     global heredy
     roundshow(100, 500, rn - 3)
     pygame.display.update()
-    r = requests.post('http://' + ipadress + ':5000/sendready', headers=headers,
-                      data=jsonpickle.encode([me.ID,1]))
+    connection.Send(
+        {"action": "ready"})
+    # r = requests.post('http://' + ipadress + ':5000/sendready', headers=headers,
+    #                   data=jsonpickle.encode([me.ID,1]))
 
 cl=1
 def upgrade():
@@ -1182,13 +1190,12 @@ while running:
                 if XX[1]<h-200:
                     clickpos=XX[1]-scroll
                     if 118*len(bloonprices)+13>clickpos>12:
-                        if bloonprices[int((clickpos-13)/118)][0][0]*bloonumba<money:
+                        if bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba<=money:
                             growmaybe=0
                             if XX[0]>w-100:
                                 if int((clickpos-13)/118)<10:
                                     growmaybe=1
-                            r = requests.post('http://' + ipadress + ':5000/sendbloon', headers=headers,
-                                              data=jsonpickle.encode([me.ID, [bloonumba, int((clickpos-13)/118),growmaybe*random.randint(50,350)]]))
+                            connection.Send({"action": "send", "what": [bloonumba, int((clickpos-13)/118),growmaybe*random.randint(50,350)]})
                             money-=bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba
                             income+=bloonprices[int((clickpos-13)/118)][growmaybe][1]*bloonumba
                 elif XX[0]>w-100:
@@ -1296,7 +1303,8 @@ while running:
 
         if event.type == pygame.QUIT:
            pygame. quit()
-           
+    connection.Pump()
+    nwl.Pump()
     if ti%7 == 0:
         for e in xplosions:
             e.t+=30
@@ -1306,12 +1314,12 @@ while running:
                 xplosions.remove(e)
                 e.kill()
                 del e
+    # r = requests.post('http://' + ipadress + ':5000/anynew', headers=headers,
+    #                   data=jsonpickle.encode(me.ID))
+    # thing = jsonpickle.decode(r.text)
+    # for e in thing:
+    #     updatelist[e[0]](e[1])
 
-    r = requests.post('http://' + ipadress + ':5000/anynew', headers=headers,
-                      data=jsonpickle.encode(me.ID))
-    thing = jsonpickle.decode(r.text)
-    for e in thing:
-        updatelist[e[0]](e[1])
     # for b in force:
     #     #PO:amount of charges, max charges po:for shield recharge cooldown, second is time of shield expiration, first is cooldonw neccessary
     #     if b.PO[0]>0:
@@ -1587,6 +1595,7 @@ while running:
     screen.blit(loadify('select'),(40,780)) 
     screen.blit(monksel[select],(50,800))    
     screen.blit(panelloon,(w-240,scroll))
+
     screen.blit(bloonamount, (w - 240, h-200))
     bwee = finter.render(str(bloonumba), True, (0, 0, 0))
     screen.blit(bwee, (w - 180, h - 150))
