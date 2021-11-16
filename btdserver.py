@@ -143,21 +143,21 @@ def rnd(b):
         regrow = random.randint(50, 350)
     spc = random.randint(1, 50)
     ch = 5
-    if rn > 40:
+    if rn > 60:
         ch = random.randint(9, 13)
         if ch == 1:
             regrow = 0
         else:
             ch = 5
     if ch == 5:
-        if rn > 20:
+        if rn > 40:
             ch = random.randint(1, 11)
             if rn > 25 and ch == 1:
                 ch = 12
                 regrow = 0
             elif ch == 7:
                 spc += 10
-        elif rn > 10:
+        elif rn > 20:
             ch = random.randint(1, 6)
         else:
             ch = random.randint(1, 3)
@@ -165,7 +165,7 @@ def rnd(b):
     for channel in srvr.all_channels:
         channel.Send({"action": "ugotbloonsmon", "takedis": [int(rn / int(ch / 2 + 1)), ch, regrow, spc]})
     if random.randint(int(rn / 3), rn) > 10 + b * 2:
-        rnd(b + 1, [])
+        rnd(b + 1)
 
 #
 # @app.route('/anynew', methods = ['POST'])

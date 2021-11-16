@@ -22,7 +22,6 @@ class MyNetworkListener(ConnectionListener):
     def Network_gitplayer(self,data):
         global me
         if data["id"]<3:
-            print(data["id"])
             me=player(data["id"])
         else:
             uu=1/0
@@ -423,7 +422,8 @@ class Bloon(pygame.sprite.Sprite):
                                  [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
                                  [10, 20, 9, -5, [[5, 5]]], [20, rn + 50, 0, -11, [[4, 9]]],
                                  [0, rn * 2 + 100, 0, -10, [[4, 10]]] ]
-            what=bloonlistdingus[which+overkill]
+
+            what=bloonlistdingus[which]
 
             # what = [speed,health,HH(wierdhelf),ID,spawn,EX,EY]
 
@@ -433,9 +433,12 @@ class Bloon(pygame.sprite.Sprite):
             else:
                 ghl = 0
                 kgli = 0
-            bloons.append(Bloon(self.X +random.randint(-70,70), self.Y+random.randint(-70,70), (what[0]+rn/5)/5
+            newbloon=Bloon(self.X +random.randint(-70,70), self.Y+random.randint(-70,70), (what[0]+rn/5)/5
                                 , what[1], self.f
-                                , self.r, what[3], self.h,what[2],what[4], ghl, kgli,self.made))
+                                , self.r, what[3], self.h,what[2],what[4], ghl, kgli,self.made)
+            bloons.append(newbloon)
+            if overkill<0:
+                newbloon.hploss(-overkill)
     def grow(e,howmuch=1):
         if e.HH < e.h:
             e.HH += min(howmuch,e.h-e.HH)
@@ -1382,9 +1385,9 @@ while running:
                 if d in drts:
                     if b not in murder:
                         if distanceM(b.X+b.T, b.Y+b.R-10, d.X+5, d.Y+5,-80+b.siz+d.siz):
+                            d.special(b)
                             if d.dmg>b.armr:
                                 b.hploss(d.dmg-b.armr)
-                            d.special(b)
                             d.H -= 1
                             if d.H < 1:
                                 if d.P[0]>0:
