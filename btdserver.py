@@ -139,31 +139,32 @@ def rnd(b):
         nextround = 0
         rn+=1
     regrow = random.choice([0, 1])
-    if regrow == 1:
-        regrow = random.randint(50, 350)
-    spc = random.randint(1, 50)
-    ch = 5
-    if rn > 60:
+    if rn > 50:
         ch = random.randint(9, 13)
-        if ch == 1:
+        if ch == 13:
             regrow = 0
+            ch=12
         else:
-            ch = 5
+            ch=5
+    elif regrow == 1:
+        regrow = random.randint(50, 350)
+
+    spc = random.randint(1, 50)
+
     if ch == 5:
-        if rn > 40:
+        if rn > 30:
             ch = random.randint(1, 11)
-            if rn > 25 and ch == 1:
-                ch = 12
-                regrow = 0
+            if ch==11:
+                regrow=0
             elif ch == 7:
                 spc += 10
-        elif rn > 20:
+        elif rn > 15:
             ch = random.randint(1, 6)
         else:
             ch = random.randint(1, 3)
             #[howmany, which, regrow (random.randint(50,350) is standard)]
     for channel in srvr.all_channels:
-        channel.Send({"action": "ugotbloonsmon", "takedis": [int(rn / int(ch / 2 + 1)), ch, regrow, spc]})
+        channel.Send({"action": "ugotbloonsmon", "takedis": [int(rn / int(ch / 2 + 1)), ch-1, regrow, spc]})
     if random.randint(int(rn / 3), rn) > 10 + b * 2:
         rnd(b + 1)
 

@@ -346,6 +346,7 @@ class Bloon(pygame.sprite.Sprite):
         #     self.r=0
         self.h = h
         self.HH = HH
+        print(r,H,ID)
         if self.r>0:
             growbloon.append(self)
             if self.ID>-1:
