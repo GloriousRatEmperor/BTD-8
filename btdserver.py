@@ -134,10 +134,11 @@ f=1
 updates=[]
 rn=5
 def rnd(b):
-    global rn,players,nextround
+    global rn,players,nextround,ch
     if b==0:
         nextround = 0
         rn+=1
+    ch = 5
     regrow = random.choice([0, 1])
     if rn > 50:
         ch = random.randint(9, 13)

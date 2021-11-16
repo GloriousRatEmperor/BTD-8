@@ -346,7 +346,6 @@ class Bloon(pygame.sprite.Sprite):
         #     self.r=0
         self.h = h
         self.HH = HH
-        print(r,H,ID)
         if self.r>0:
             growbloon.append(self)
             if self.ID>-1:
@@ -421,11 +420,12 @@ class Bloon(pygame.sprite.Sprite):
             bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                                  [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                                  [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                                 [10, 20, 9, -5, [[5, 5]]], [20, rn + 50, 0, -11, [[4, 9]]],
-                                 [0, rn * 2 + 100, 0, -10, [[4, 10]]] ]
+                                 [10, 20, 9, -5, [[5, 5]]], [25, rn + 50, 0, -11, [[4, 9]]],
+                                 [15, rn * 2 + 100, 0, -10, [[4, 10]]] ]
 
             what=bloonlistdingus[which]
-
+            if what[3] > -10:
+                what[0] += min(rn, 60) / 5
             # what = [speed,health,HH(wierdhelf),ID,spawn,EX,EY]
 
             if len(what)>5:
@@ -434,56 +434,57 @@ class Bloon(pygame.sprite.Sprite):
             else:
                 ghl = 0
                 kgli = 0
-            newbloon=Bloon(self.X +random.randint(-70,70), self.Y+random.randint(-70,70), (what[0]+rn/5)/5
+            newbloon=Bloon(self.X +random.randint(-70,70), self.Y+random.randint(-70,70), (what[0])/5
                                 , what[1], self.f
                                 , self.r, what[3], self.h,what[2],what[4], ghl, kgli,self.made)
             bloons.append(newbloon)
             if overkill<0:
                 newbloon.hploss(-overkill)
     def grow(e,howmuch=1):
-        if e.HH < e.h:
-            e.HH += min(howmuch,e.h-e.HH)
-            if e.HH>5 and not e.ID==-1:
-                forms = [[0, 1, -2, [[2,4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
-                         [10, 20, -5, [[5, 1]]]]
-                if e.HH > 6:
-                    e.HH = e.h
-                form = forms[e.HH-6]
-                e.ID=form[2]
-                e.spawn=form[3]
-                e.H= form[1]
-                e.SX /= e.S
-                e.SY /= e.S
-                e.S = (form[0]+rn/5)/5
-                e.SX *= e.S
-                e.SY *= e.S
-                e.I = B[e.HH-1]
-                        # if e.h == 13:
-                        #     e.ID = -3
-                        #     e.H = 4
-                        #     e.spawn = [[1, 1], [4, 5]]
-                        #     e.I = B[6]
-                        # elif e.h < 15:
-                        #     e.ID = -4
-                        #     e.H = 5
-                        #     e.spawn = [[1, 1], [1, 4]]
-                        #     e.I = B[7]
-                        # else:
-                        #     e.ID = -5
-                        #     e.H = 20
-                        #     e.spawn = [[5, 1]]
-                        #     e.I = B[8].S
+        if e not in murder:
+            if e.HH < e.h:
+                e.HH += min(howmuch,e.h-e.HH)
+                if e.HH>5 and not e.ID==-1:
+                    forms = [[0, 1, -2, [[2,4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
+                             [10, 20, -5, [[5, 1]]]]
+                    if e.HH > 6:
+                        e.HH = e.h
+                    form = forms[e.HH-6]
+                    e.ID=form[2]
+                    e.spawn=form[3]
+                    e.H= form[1]
+                    e.SX /= e.S
+                    e.SY /= e.S
+                    e.S = (form[0]+rn/5)/5
+                    e.SX *= e.S
+                    e.SY *= e.S
+                    e.I = B[e.HH-1]
+                            # if e.h == 13:
+                            #     e.ID = -3
+                            #     e.H = 4
+                            #     e.spawn = [[1, 1], [4, 5]]
+                            #     e.I = B[6]
+                            # elif e.h < 15:
+                            #     e.ID = -4
+                            #     e.H = 5
+                            #     e.spawn = [[1, 1], [1, 4]]
+                            #     e.I = B[7]
+                            # else:
+                            #     e.ID = -5
+                            #     e.H = 20
+                            #     e.spawn = [[5, 1]]
+                            #     e.I = B[8].S
 
-            elif e.ID>0:
-                e.H=e.HH
-                e.I = e.i[e.H - 1]
-                e.SX /= e.S
-                e.SY /= e.S
-                e.S = speed(e.H) / 5
-                e.SX *= e.S
-                e.SY *= e.S
-            else:
-                e.H = e.HH
+                elif e.ID>0:
+                    e.H=e.HH
+                    e.I = e.i[e.H - 1]
+                    e.SX /= e.S
+                    e.SY /= e.S
+                    e.S = speed(e.H) / 5
+                    e.SX *= e.S
+                    e.SY *= e.S
+                else:
+                    e.H = e.HH
 class explode(pygame.sprite.Sprite):
     def __init__(self,X,Y,i,T,howfast=1,strt=60):
         super(explode, self).__init__()
@@ -691,8 +692,8 @@ def sendbloon(stuff):
     bloonlistcomplete = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                        [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                        [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                       [10, 20, 9, -5, [[5, 5]]], [20, rn + 50, 0, -11, [[4, 9]]],
-                       [0, rn * 2 + 100, 0, -10, [[4, 10]]] ]
+                       [10, 20, 9, -5, [[5, 5]]], [25, rn + 50, 0, -11, [[4, 9]]],
+                       [15, rn * 2 + 100, 0, -10, [[4, 10]]] ]
     what = bloonlistcomplete[stuff[1]]
     if len(stuff)>3:
         sent=0
@@ -723,7 +724,9 @@ hippo=0
 heredy=0
 headers = {'Content-type': 'application/json'}
 def ready():
-    global heredy
+    global heredy,thorned,growbloon
+    thorned=[]
+    growbloon=[]
     roundshow(100, 500, rn - 3)
     pygame.display.update()
     connection.Send(
@@ -1178,6 +1181,7 @@ targetedF=[]
 factories=[]
 scroll=0
 ploi=0
+CheaterPowers=0
 board=loadify("board")
 panelloon=loadify("bloonyroad")
 panelsize = pygame.Surface.get_size(panelloon)
@@ -1306,7 +1310,8 @@ while running:
              if event.mod & pygame.KMOD_RSHIFT:
                  if event.key == pygame.K_q:
                      money+=1000
-
+                 elif event.key == pygame.K_BACKSLASH:
+                     CheaterPowers=1
         if event.type == pygame.QUIT:
            pygame. quit()
     connection.Pump()
@@ -1320,6 +1325,9 @@ while running:
                 xplosions.remove(e)
                 e.kill()
                 del e
+    if CheaterPowers==1:
+        for e in bloons:
+            e.hploss(100)
     # r = requests.post('http://' + ipadress + ':5000/anynew', headers=headers,
     #                   data=jsonpickle.encode(me.ID))
     # thing = jsonpickle.decode(r.text)
