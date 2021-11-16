@@ -919,10 +919,10 @@ def upgrade():
                                             e.I=loadify('engineer2')
                                         cl=0
                             elif e.f==1:
-                                if money>119:
+                                if money>79:
                                     for e in lvlup:
                                         e.f=2
-                                        money-=120
+                                        money-=80
                                         e.I=loadify('time')
                                         e.MI=wata
                                         e.SPE=[1,1]
