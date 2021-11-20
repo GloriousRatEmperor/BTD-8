@@ -144,7 +144,7 @@ def rnd(b):
         ch = random.randint(9, 13)
         if ch == 13:
             regrow = 0
-            ch=12
+            ch=13
         else:
             ch=5
     elif regrow == 1:
@@ -154,8 +154,8 @@ def rnd(b):
 
     if ch == 5:
         if rn > 30:
-            ch = random.randint(1, 11)
-            if ch==11:
+            ch = random.randint(1, 12)
+            if ch==12:
                 regrow=0
             elif ch == 7:
                 spc += 10

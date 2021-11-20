@@ -257,9 +257,6 @@ class Drt(pygame.sprite.Sprite):
                     loss.SY/=loss.S*10
                     loss.SX /=loss.S*10
                     loss.S = 0.1
-                    if 1<loss.ID<5:
-                        loss.ID=0
-
             # if ti % 7 == 0:
             #     for e in xplosions:
             #         e.t += 30
@@ -322,13 +319,13 @@ yeano=1
 rndbloon=[]
 
 class Bloon(pygame.sprite.Sprite):
-    def __init__(self,X,Y,S,H,f,r,ID,h,HH,spawn=[],EX=0,EY=0,sent=0):
+    def __init__(self,X,Y,S,H,f,r,ID,h,HH,spawn=[],armr=0,EY=0,sent=0):
         super(Bloon, self).__init__()
         global power,POWER,yeano
         blns.append(self)
         self.n=blntrac
-        self.armr=0
-        self.EX=EX
+        self.armr=armr
+        self.EX=0
         self.made=sent
         if sent==0:
             rndbloon.append(self)
@@ -353,7 +350,7 @@ class Bloon(pygame.sprite.Sprite):
                 self.I=self.i[self.H-1]
             elif self.ID==-1:
                 self.I=spe[1]
-            elif -1>self.ID>-6:
+            elif -1>self.ID>-7:
                 self.i = B
                 self.I=B[-self.ID+3]
         elif self.ID>-1:
@@ -364,7 +361,7 @@ class Bloon(pygame.sprite.Sprite):
         elif self.ID==-10:
             self.I=bossI
             self.img=bossI
-        elif -1>self.ID>-6:
+        elif -1>self.ID>-7:
             self.I=A[-self.ID+3]
         elif self.ID == -11:
             self.I=boss2
@@ -418,10 +415,10 @@ class Bloon(pygame.sprite.Sprite):
     def make(self,which,overkill):
         if which+overkill>-1:
             bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
-                                 [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
-                                 [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                                 [10, 20, 9, -5, [[5, 5]]], [25, rn + 50, 0, -11, [[4, 9]]],
-                                 [15, rn * 2 + 100, 0, -10, [[4, 10]]] ]
+                       [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
+                       [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
+                       [10, 20, 9, -5, [[5, 5]]],[7, int(30 + rn / 8), int(30 + rn / 8),-6,[[4,9]],2], [25, rn + 65, 0, -11, [[4, 10]]],
+                       [15, rn * 2 + 120, 0, -10, [[4, 11]]] ]
 
             what=bloonlistdingus[which]
             if what[3] > -10:
@@ -429,14 +426,12 @@ class Bloon(pygame.sprite.Sprite):
             # what = [speed,health,HH(wierdhelf),ID,spawn,EX,EY]
 
             if len(what)>5:
-                ghl = what[5]
-                kgli = what[6]
+                armour = what[5]
             else:
-                ghl = 0
-                kgli = 0
+                armour = 0
             newbloon=Bloon(self.X +random.randint(-70,70), self.Y+random.randint(-70,70), (what[0])/5
                                 , what[1], self.f
-                                , self.r, what[3], self.h,what[2],what[4], ghl, kgli,self.made)
+                                , self.r, what[3], self.h,what[2],what[4], armour, 0,self.made)
             bloons.append(newbloon)
             if overkill<0:
                 newbloon.hploss(-overkill)
@@ -446,7 +441,8 @@ class Bloon(pygame.sprite.Sprite):
                 e.HH += min(howmuch,e.h-e.HH)
                 if e.HH>5 and not e.ID==-1:
                     forms = [[0, 1, -2, [[2,4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
-                             [10, 20, -5, [[5, 1]]]]
+                             [10, 20, -5, [[5, 5]]],[7, int(30 + rn / 8), -6,[[4,9]],1]]
+
                     if e.HH > 6:
                         e.HH = e.h
                     form = forms[e.HH-6]
@@ -459,6 +455,8 @@ class Bloon(pygame.sprite.Sprite):
                     e.SX *= e.S
                     e.SY *= e.S
                     e.I = B[e.HH-1]
+                    if len(form)>4:
+                        e.armr = form[4]
                             # if e.h == 13:
                             #     e.ID = -3
                             #     e.H = 4
@@ -653,12 +651,11 @@ def blnM():
             else:
                 e.f+=2
                 if e.f>21:
-                    health-=e.H+Bloondamage[e.HH]
+                    health-=e.H
                     murder.append(e)
                     e.f=0
                     if health<0:
                         death(100,h//2-200)
-Bloondamage=[0,0,0,0,0,10,17,23,0,55,300,1420]
 power=0             
 POWER=0
 xplosions=[]           
@@ -674,10 +671,10 @@ elo=0
 spdy=0
 A = [loadify('bloon'),loadify('blnB'),loadify('blngreen')
      ,loadify('blnyellow'),loadify('blnpink'),loadify('blnblac')
-     ,loadify('tigerP'),loadify('tigerG'),loadify('blackrockbloon')]
+     ,loadify('tigerP'),loadify('tigerG'),loadify('blackrockbloon'),loadify('platebloon')]
 B = [loadify('regred'),loadify('regblu'),loadify('reggrn')
      ,loadify('regyel'),loadify('regpin'),loadify('regbla')
-     ,loadify('regpu2'),loadify('reggr2'),loadify('regblackrockbloon')]
+     ,loadify('regpu2'),loadify('reggr2'),loadify('regblackrockbloon'),loadify('regplate')]
 force=[]
 drtmonks = []
 drts=[]
@@ -692,8 +689,8 @@ def sendbloon(stuff):
     bloonlistcomplete = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                        [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                        [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                       [10, 20, 9, -5, [[5, 5]]], [25, rn + 50, 0, -11, [[4, 9]]],
-                       [15, rn * 2 + 100, 0, -10, [[4, 10]]] ]
+                       [10, 20, 9, -5, [[5, 5]]],[7, int(30 + rn / 8), 10,-6,[[4,9]],1], [25, rn + 65, 0, -11, [[4, 10]]],
+                       [15, rn * 2 + 120, 0, -10, [[4, 11]]] ]
     what = bloonlistcomplete[stuff[1]]
     if len(stuff)>3:
         sent=0
@@ -701,12 +698,16 @@ def sendbloon(stuff):
     else:
         spc=5
         sent=1
+    if len(what) > 5:
+        armour = what[5]
+    else:
+        armour = 0
     if what[3]>-10:
         what[0]+=min(rn,60)/5
     for e in range (stuff[0]):
         bloons.append(Bloon(-50 - e * spc,150, (what[0])/5
                             , what[1], 1
-                            ,stuff[2], what[3], what[2], what[2],what[4],0,0,sent))
+                            ,stuff[2], what[3], what[2], what[2],what[4],armour,0,sent))
 income=25
 def roundshow(x,y,l):
     dead = fint.render("round" + str(l), True, (0, 255, 0))
@@ -809,8 +810,8 @@ def upgrade():
                                         e.I=loadify('grmn')
                                         e.MI=loadify('tureetb')
                                         e.ID=loadify('explodrt')
-                                        e.c*=1.2
-                                        e.P=[70,1]
+                                        e.c*=10
+                                        e.P=[50,1]
                                         money-=170
                                         cl=0
 
@@ -1190,8 +1191,8 @@ back=pygame.transform.smoothscale(loadify('btd map'),(w,h))
 bloonamount=loadify("killerrock")
 drts3=[]
 bloonumba=1
-bloonprices=[ [[1,0.2],[2,0.5]], [[2,0.4],[4,0.9]], [[3,0.6],[6,1.5]], [[4,0.9],[7,1.7]], [[5,1.2],[10,2.5]],
-             [[10,2],[24,4]], [[14,2.4],[30,4.4]], [[14,2.4],[30,4.4]], [[10,1.8],[24,4.1]], [[90,0.5],[200,1]], [[400,1]],[[900,-50]] ]
+bloonprices=[ [[1,0.1],[2,0.23]], [[2,0.2],[4,0.5]], [[3,0.3],[6,0.77]], [[4,0.4],[7,0.9]], [[5,0.5],[10,1.3]],
+             [[10,1],[24,2]], [[14,1.2],[30,2.2]], [[14,1.2],[30,2.2]], [[10,0.9],[24,2]], [[90,0.25],[200,0.5]], [[300,0],[500,0]], [[800,1]],[[1800,-50]] ]
 while running:
     XX = pygame.mouse.get_pos()
     for event in pygame.event.get():
