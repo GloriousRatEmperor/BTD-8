@@ -810,7 +810,6 @@ def upgrade():
                                         e.I=loadify('grmn')
                                         e.MI=loadify('tureetb')
                                         e.ID=loadify('explodrt')
-                                        e.c*=10
                                         e.P=[50,1]
                                         money-=170
                                         cl=0
