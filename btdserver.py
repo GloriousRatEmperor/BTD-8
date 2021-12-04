@@ -1,7 +1,5 @@
-import pygame
+
 import time
-from flask import Flask, request
-import jsonpickle
 import random
 from PodSixNet.Channel import Channel
 from PodSixNet.Server import Server
@@ -140,29 +138,33 @@ def rnd(b):
         rn+=1
     ch = 5
     regrow = random.choice([0, 1])
-    if rn > 50:
+    if rn > 60:
         ch = random.randint(9, 13)
         if ch == 13:
             regrow = 0
-            ch=13
+            spc += 15
         else:
             ch=5
     elif regrow == 1:
-        regrow = random.randint(50, 350)
+        regrow = random.randint(88, 250)
 
     spc = random.randint(1, 50)
-
     if ch == 5:
-        if rn > 30:
+        if rn > 40:
             ch = random.randint(1, 12)
             if ch==12:
                 regrow=0
-            elif ch == 7:
                 spc += 10
+        if rn > 30:
+            ch = random.randint(1, 11)
+        if rn > 20:
+            ch = random.randint(1, 9)
         elif rn > 15:
             ch = random.randint(1, 6)
         else:
             ch = random.randint(1, 3)
+        if ch == 7:
+            spc += 10
             #[howmany, which, regrow (random.randint(50,350) is standard)]
     for channel in srvr.all_channels:
         channel.Send({"action": "ugotbloonsmon", "takedis": [int(rn / int(ch / 2 + 1)), ch-1, regrow, spc]})

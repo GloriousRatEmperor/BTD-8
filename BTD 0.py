@@ -42,6 +42,8 @@ connection.Send({"action":"start","id":888690420})
 # me = jsonpickle.decode(r.text)
 def loadify(imgname):
     return pygame.image.load(f"imagesboom/{imgname}.png").convert_alpha()
+def loadanimation(foldername,imgname):
+    return pygame.image.load(f"imagesboom/boom/{foldername}/{imgname}.png").convert_alpha()
 font = pygame.font.Font('freesansbold.ttf',25)
 fint = pygame.font.Font('freesansbold.ttf',150)
 finter = pygame.font.Font('freesansbold.ttf',48)
@@ -49,7 +51,7 @@ flont = pygame.font.Font('freesansbold.ttf',80)
 flint = pygame.font.Font('freesansbold.ttf',30)
 screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 w, h = pygame.display.get_surface().get_size()
-pygame.display.set_caption("BTD 7")
+pygame.display.set_caption("BTD Battles 8")
 icon = loadify('drtmonk')
 pygame.display.set_icon(icon)
 running = True
@@ -63,6 +65,7 @@ pas=time.time()
 bloons=[]
 lvlup = []
 monks = []
+animations=[]
 bomb=loadify('bomb')
 gunners=[]
 enginer=loadify('engineer')
@@ -91,7 +94,8 @@ class drtmonkey(pygame.sprite.Sprite):
         super(drtmonkey, self).__init__()
         if LS==-10:
             monks.append(self)
-            self.price = 31+int(DS / 3) - int(c / 10)
+            self.price = 20
+            #self.price = 31+int(DS / 3) - int(c / 10)
         else:
             if I==wata:
                 self.rot=7
@@ -123,7 +127,9 @@ class gunner(pygame.sprite.Sprite):
         super(gunner, self).__init__()
         monks.append(self)
         self.c=c
+        self.dmg=1
         self.MID=4
+        self.price = 225
         self.H=H
         self.ID=ID
         self.DS=DS
@@ -146,6 +152,7 @@ class factory(pygame.sprite.Sprite):
         self.spikeY=[]
         self.X=X
         self.Y=Y
+        self.price = 90
         self.SPE=[0,0]
         super(factory, self).__init__()
         monks.append(self)
@@ -171,12 +178,17 @@ class factory(pygame.sprite.Sprite):
         self.f=f
         self.F=F
         self.P=P
-
+class Image(pygame.sprite.Sprite):
+    def __init__(self, I,X,Y):
+        self.I=I
+        self.x = X
+        self.y = Y
 class engin(pygame.sprite.Sprite):
     def __init__(self,X,Y,I,f,F,DS,H,c,MI,MC,ID,LS,P,SPE):
         super(engin, self).__init__()
         monks.append(self)
         self.SPE=SPE
+        self.price = 69
         self.MID=2
         self.ID=ID
         self.MC=MC
@@ -221,13 +233,15 @@ class Drt(pygame.sprite.Sprite):
             self.a=pygame.transform.rotate(self.I,-math.atan(spdy/spdx)*180/math.pi)
         else:
             self.a=pygame.transform.rotate(self.I,180-math.atan(spdy/spdx)*180/math.pi)
+        self.ss = pygame.Surface.get_size(self.a)
+        self.I=self.a
         self.s=s
         self.S=S
         self.H=H
         self.X=X
+        self.pierce=[1,1]
         self.Y=Y
         self.P=P
-        self.ss=pygame.Surface.get_size(self.a)
         self.siz=(self.ss[0]+self.ss[1])/5
         self.V=int(self.ss[0]/2)
         self.C=int(self.ss[1]/2)
@@ -245,11 +259,22 @@ class Drt(pygame.sprite.Sprite):
                         loss.SY/=self.SPE[c*2-1]+1
                         loss.IM=1
             elif self.SPE[c*2-2]==2:
-                if self.H>1:
-                    xplosions.append(explode(self.X,self.Y,self.a,self.D[1]/7*30,10.73/self.D[1],0))
-                    drts.remove(self)
-                    druidart.append(self)
-                    self.D[0]=ti
+                print(self.SPE[c*2-1],self.SPE[c*2-2])
+                if self.pierce[0]<1:
+                    if self.H>1:
+                        xplosions.append(explode(self.X,self.Y,self.a,self.D[1]/7*30,10.73/self.D[1]*self.SPE[c*2-1],0))
+                        if self.SPE[c*2-1]>1:
+                            self.a=pygame.transform.smoothscale(self.I,(int(self.ss[0]*self.SPE[c*2-1]),int(self.ss[1]*self.SPE[c*2-1])))
+                            self.ss=self.ss = pygame.Surface.get_size(self.a)
+                            self.pierce[1]+=1
+                            self.dmg+=2
+                        self.pierce[0]=self.pierce[1]
+                        drts.remove(self)
+                        druidart.append(self)
+                        self.D[0]=ti
+                else:
+                    self.pierce[0]-=1
+                    self.H+=1
             elif self.SPE[c*2-2]==3:
                 if loss not in thorned and loss.ID>-9:
                     thorned.append(loss)
@@ -417,8 +442,8 @@ class Bloon(pygame.sprite.Sprite):
             bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                        [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                        [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                       [10, 20, 9, -5, [[5, 5]]],[7, int(30 + rn / 8), int(30 + rn / 8),-6,[[4,9]],2], [25, rn + 65, 0, -11, [[4, 10]]],
-                       [15, rn * 2 + 120, 0, -10, [[4, 11]]] ]
+                       [10, 20, 9, -5, [[5, 5]]],[7, int(20 + rn / 12), 10,-6,[[4,9]],2], [16, rn + 65, 0, -11, [[4, 9]]],
+                       [3, rn * 3 + 120, 0, -10, [[4, 11]]] ]
 
             what=bloonlistdingus[which]
             if what[3] > -10:
@@ -483,16 +508,24 @@ class Bloon(pygame.sprite.Sprite):
                     e.SY *= e.S
                 else:
                     e.H = e.HH
+
 class explode(pygame.sprite.Sprite):
     def __init__(self,X,Y,i,T,howfast=1,strt=60):
         super(explode, self).__init__()
+        self.i = i
+        for e in range(3):
+            if e==i:
+                self.i=explod[i][0]
+                animations.append(self)
+                self.ii=explod[i]
+                self.faze=0
+
         self.X=X+30
         self.Start=strt
         self.Y=Y+30
         self.T=T
-        self.i=i
         self.S = howfast
-        self.s=pygame.Surface.get_size(i)
+        self.s=pygame.Surface.get_size(self.i)
         self.I=loadify('noth')
         self.t=0
 druids=[]
@@ -504,6 +537,7 @@ class Druid(pygame.sprite.Sprite):
         self.c=c
         self.DS=DS
         self.C=ti
+        self.price = 45
         self.D=timebetweenhits
         self.I=I
         self.f=f
@@ -553,7 +587,7 @@ def drtM():
             drts.remove(e)
             del e
 def moida():
-    global money,income,rn
+    global money,income,rn,locked
     for b in range (len(murder)):
          e=murder[0]
          murder.remove(e)
@@ -565,6 +599,7 @@ def moida():
                 if rndbloon == []:
                     money+=income
                     rn+=1
+                    locked+=1
                     ready()
              if e in thorned:
                  thorned.remove(e)
@@ -678,7 +713,6 @@ B = [loadify('regred'),loadify('regblu'),loadify('reggrn')
 force=[]
 drtmonks = []
 drts=[]
-explosionI=loadify('explode')
 enginers=[]
 bossH=0
 bossX=0
@@ -689,8 +723,8 @@ def sendbloon(stuff):
     bloonlistcomplete = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                        [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                        [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                       [10, 20, 9, -5, [[5, 5]]],[7, int(30 + rn / 8), 10,-6,[[4,9]],1], [25, rn + 65, 0, -11, [[4, 10]]],
-                       [15, rn * 2 + 120, 0, -10, [[4, 11]]] ]
+                       [10, 20, 9, -5, [[5, 5]]],[7, int(20 + rn / 12), 10,-6,[[4,9]],1], [16, rn + 50, 0, -11, [[4, 9]]],
+                       [3, rn * 3 + 100, 0, -10, [[4, 11]]] ]
     what = bloonlistcomplete[stuff[1]]
     if len(stuff)>3:
         sent=0
@@ -737,19 +771,12 @@ def ready():
 
 cl=1
 def upgrade():
-    global cl,price,lvlup,drtmonks,money
+    global cl,price,lvlup,drtmonks,money,druids
     cl=1
     menu()
     for e in lvlup:
         menuAB(e.MID,e.F,e.f)
-        if e.MID==1 or e.MID==5:
-            sell(0,0,0,0,0,e.price)
-        elif e.MID==2:
-            sell(e.F,e.f,e.MC,e.c,2)
-        elif e.MID==3:
-            sell(e.f,e.F,e.c,e.LS,3)
-        elif e.MID==4:
-            sell(e.f,e.F,e.DS,e.c,4)
+        sell(e.price)
 
     pygame.display.update()
     while cl==1:
@@ -789,7 +816,7 @@ def upgrade():
                                         money-=110
                                         e.ID=loadify('drtex')
                                         e.I=loadify('cyborg')
-                                        e.P=[80,1]
+                                        e.P=[80,1,1]
                                         cl=0
 
                         elif e.MID==2:
@@ -810,7 +837,7 @@ def upgrade():
                                         e.I=loadify('grmn')
                                         e.MI=loadify('tureetb')
                                         e.ID=loadify('explodrt')
-                                        e.P=[50,1]
+                                        e.P=[50,1,1]
                                         money-=170
                                         cl=0
 
@@ -847,11 +874,12 @@ def upgrade():
                                 if money>4499:
                                     for e in lvlup:
                                         e.I=loadify('tank')
-                                        e.H+=10
+                                        e.H+=6
+                                        e.dmg += 1
                                         e.ID=loadify('blcdrt')
                                         e.DS*=3
                                         e.F=3
-                                        e.c/=3
+                                        e.c/=1.5
                                         money-=4500
                                         cl=0
                         elif e.MID==5:
@@ -861,14 +889,29 @@ def upgrade():
                                         e.H=9
                                         money-=40
                                         e.SPE.append(2)
-                                        e.SPE.append(0)
+                                        e.SPE.append(1)
                                         if e.f==0:
                                             e.I = loadify('druid2')
                                         elif e.f==1:
                                             e.I = loadify('druid3')
                                         e.F=1
                                         cl = 0
-
+                            elif e.F==1:
+                                if money > 379:
+                                    for e in lvlup:
+                                        money-=380
+                                        e.DS+=1
+                                        e.D/=1.2
+                                        e.c/=2.5
+                                        for y in range(len(e.SPE)):
+                                            if e.SPE[y-1]==2:
+                                                e.SPE[y] += 0.2
+                                        if e.f==0:
+                                            e.I = loadify('druid5')
+                                        elif e.f==1:
+                                            e.I = loadify('druid6')
+                                        e.F=2
+                                        cl=0
                     elif 900>XX[1]:
                         if e.MID==1:
                             if e.f==0 and e.dmg==1:
@@ -893,16 +936,16 @@ def upgrade():
                                         e.ID=loadify('beefdrt')
                                         cl=0
                             elif e.f==2 and e.F<3:
-                                if money>79:
+                                if money>99:
                                     for r in range(3):
                                         if e.F>0:
                                             r/=2
                                         if r*9.5<e.DS:
-                                            e.H+=1
+                                            e.H+=3
                                     e.DS += 2
                                     e.H += +2
                                     e.f = 3
-                                    money -= 80
+                                    money -= 100
                                     e.ID = loadify('beefyerdrt')
                                     e.I = loadify('gorrila')
                                     cl = 0
@@ -934,7 +977,7 @@ def upgrade():
                                     for e in lvlup:
                                         e.f=1
                                         money-=250
-                                        e.P=[35,1]
+                                        e.P=[35,1,1]
                                         e.ID=loadify('mineS')
                                         cl=0
                             elif e.f==1:
@@ -956,6 +999,8 @@ def upgrade():
                                             e.I=loadify('druid02')
                                         elif e.F==1:
                                             e.I = loadify('druid3')
+                                        elif e.f==1:
+                                            e.I = loadify('druid6')
                                         e.dmg+=3
                                         cl = 0
 
@@ -980,34 +1025,9 @@ def upgrade():
 
     lvlup = []
 price=0
-def sell(up1,up2,dartspeed,cooldown,MT, insta=[]):
+def sell(insta):
     global price
-    if not insta==[]:
-        price = insta
-    elif MT==2:
-        price=45
-        price+=int((dartspeed/100)*(cooldown/100))
-        if up1 == 1:
-            price+=25
-        if up2 == 1:
-            price+=20
-    elif MT==3:
-        price=45
-        price+=int((dartspeed/50)*(cooldown/500))
-        if up1 == 1:
-            price+=30
-        elif up1==2:
-            price+=60
-        if up2 == 1:
-            price+=150
-    if MT==4:
-        price=80
-        if up1 == 1:
-            price+=50
-        if up2 == 1:
-            price+=50
-        price += int(dartspeed/2)
-        price=int(price)
+    price = insta
     sold = flont.render("sell for " + str(price), True, (0, 0, 0))
     screen.blit(sold, (1150, 945))
 def menu():
@@ -1044,6 +1064,8 @@ def menuAB(MT,UPGNUM,PGNUM):
     if MT == 5:
         if UPGNUM==0:
             screen.blit(loadify('regrowth'),(1100,0))
+        elif UPGNUM==1:
+            screen.blit(loadify('druidbook'),(1100,0))
     if MT == 1:
         if PGNUM==0:
             screen.blit(loadify('sharper'),(1100,450))
@@ -1132,7 +1154,6 @@ def pause():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 paus=0
-pause()
 monksel=[loadify('drtmonk'),loadify('engineer')
          ,loadify('spikefac'),loadify('gunner'),loadify('smoldruid')]
 def death(x,y):
@@ -1160,6 +1181,17 @@ TL=[loadify('turret'),loadify('turretb'),loadify('turret2b'),loadify('turret2')
 pliesX = 0
 spikX=0
 cf=0
+explod1=[]
+explod2=[]
+explod3=[]
+for e in range(25):
+    explod1.append(loadanimation("boombiatch",'t'+str(e)))
+for e in range(104):
+    explod3.append(loadanimation("explosion2",'t'+str(e)))
+for e in range(98):
+    explod2.append(loadanimation("explosion",'tt'+str(e)))
+explod=[explod1,explod2,explod3]
+
 spikY=0
 pliesY = 0
 lo = 1
@@ -1175,10 +1207,12 @@ spoikX=[]
 boss=0
 spoikY=[]
 drts2=[]
-Ddrts=[]
+locked=-1
+lock=loadify("locked")
 targetedB=[]
 targetedF=[]
 factories=[]
+images=[]
 scroll=0
 ploi=0
 CheaterPowers=0
@@ -1200,14 +1234,15 @@ while running:
                 if XX[1]<h-200:
                     clickpos=XX[1]-scroll
                     if 118*len(bloonprices)+13>clickpos>12:
-                        if bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba<=money:
-                            growmaybe=0
-                            if XX[0]>w-100:
-                                if int((clickpos-13)/118)<10:
-                                    growmaybe=1
-                            connection.Send({"action": "send", "what": [bloonumba, int((clickpos-13)/118),growmaybe*random.randint(50,350)]})
-                            money-=bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba
-                            income+=bloonprices[int((clickpos-13)/118)][growmaybe][1]*bloonumba
+                        if int((clickpos-13)/118)<locked:
+                            if bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba<=money:
+                                growmaybe=0
+                                if XX[0]>w-100:
+                                    if int((clickpos-13)/118)<10:
+                                        growmaybe=1
+                                connection.Send({"action": "send", "what": [bloonumba, int((clickpos-13)/118),growmaybe*random.randint(100,400)]})
+                                money-=bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba
+                                income+=bloonprices[int((clickpos-13)/118)][growmaybe][1]*bloonumba
                 elif XX[0]>w-100:
                     if XX[1] < h - 100:
                         bloonumba+=1
@@ -1244,17 +1279,17 @@ while running:
                         if money>249:
                             money-=250
                             gunners.append(gunner(XX[0]-60,XX[1]-80,loadify('guner')
-                                                     ,0,0,5+random.randint(-2,2),30+random.randint(-12,12)
+                                                     ,0,0,5+random.randint(-2,2),20+random.randint(-12,12)
                                                   ,loadify('drtn'),1,[0,0],[0,0]))
                     elif select==4:
                         if money>49:
                             money-=50
-                            druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,4+random.randint(-3,0),700+random.randint(-250,250),200+random.randint(-50,250),[0,0]))
+                            druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,4+random.randint(-3,0),650+random.randint(-250,250),200+random.randint(-50,250),[]))
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
              XX = pygame.mouse.get_pos()
              if distanceB(XX[0], XX[1], 410, 403,-50):
-                 xplosions.append(explode(350,370,gold,400))
+                 xplosions.append(explode(380,400,gold,400))
                  
              for e in monks:
                  if distanceB(XX[0]-60, XX[1]-80, e.X, e.Y,-50):
@@ -1262,9 +1297,9 @@ while running:
                      upgrade()
                      break
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:
-                scroll-=min(scroll+panelsize-h,10)
+                scroll-=min(scroll+panelsize-h,25)
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:
-                scroll+=min(-scroll,10)
+                scroll+=min(-scroll,25)
         if event.type == pygame.KEYDOWN:
              if event.key == pygame.K_p:
                  pause()
@@ -1295,7 +1330,7 @@ while running:
                                     spdx*=-1
                                 spdy=spdx*yS/xS
          
-                            drts.append(mine(b.X+10,b.Y+60,spdx,spdy,150+rn,0,0,[1000,10],XX,[0,0],3))
+                            drts.append(mine(b.X+10,b.Y+60,spdx,spdy,150+rn,0,0,[1000,10,0],XX,[0,0],3))
                             break
 
              if event.key == pygame.K_LEFT:
@@ -1316,15 +1351,22 @@ while running:
            pygame. quit()
     connection.Pump()
     nwl.Pump()
-    if ti%7 == 0:
-        for e in xplosions:
-            e.t+=30
-            e.I=pygame.transform.scale(e.i,(int((e.t*3+e.Start)*e.S),int((e.t*3+e.Start)*e.S)))
+    #if ti%1 == 0:
+    for b in animations:
+        if b.faze<int(b.t/b.T*len(b.ii)):
+            b.faze=int(b.t/b.T*len(b.ii))
+            b.i=b.ii[b.faze-1]
+    for e in xplosions:
+        e.t+=4
+        if e.t>e.T:
+            xplosions.remove(e)
+            if e in animations:
+                animations.remove(e)
+            e.kill()
+            del e
+        else:
+            e.I=pygame.transform.smoothscale(e.i,(int((e.t*3+e.Start)*e.S),int((e.t*3+e.Start)*e.S)))
             e.s = pygame.Surface.get_size(e.I)
-            if e.t>e.T:
-                xplosions.remove(e)
-                e.kill()
-                del e
     if CheaterPowers==1:
         for e in bloons:
             e.hploss(100)
@@ -1402,7 +1444,7 @@ while running:
                             d.H -= 1
                             if d.H < 1:
                                 if d.P[0]>0:
-                                    xplosions.append(explode(d.x,d.y,explosionI,d.P[0]))
+                                    xplosions.append(explode(d.x,d.y,d.P[2],d.P[0]))
                                     for c in bloons:
                                         if d.P[1]>c.armr:
                                             if distanceB(c.X+c.T,c.Y+c.R, d.X+5, d.Y+50,d.P[0]+c.siz):
@@ -1420,7 +1462,7 @@ while running:
                                 b.hploss(d.dmg-b.armr)
                             if d.H < 1:
                                 if d.P[0]>0:
-                                    xplosions.append(explode(d.x,d.y,explosionI,d.P[0]))
+                                    xplosions.append(explode(d.x,d.y,d.P[2],d.P[0]))
                                     for c in bloons:
                                         if c.armr<d.P[1]:
                                             if distanceB(c.X+c.T,c.Y+c.R, d.X+5, d.Y+50,d.P[0]+c.siz):
@@ -1553,9 +1595,9 @@ while running:
                 pliesY=5
                 pliesX*=newspd
                 pliesY*=nespd
-                drts.append(Drt(b.X+pliesX,b.Y+pliesY,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE))
+                drts.append(Drt(b.X+pliesX,b.Y+pliesY,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE,b.dmg))
                 if b.F>1:
-                    drts.append(Drt(b.X-pliesX,b.Y-pliesY,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE))
+                    drts.append(Drt(b.X-pliesX,b.Y-pliesY,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE,b.dmg))
                     if b.F>2:
                         pliesX/=2
                         pliesY/=2
@@ -1566,11 +1608,11 @@ while running:
                         else:
                             newspd=0
                             nespd=b.ID
-                        drts.append(Drt(b.X+pliesX,b.Y+pliesY,spdx,spdy,nespd,b.H,0,0,[b.P[0]+newspd,b.P[1]+3],b.SPE))
-                        drts.append(Drt(b.X-pliesX,b.Y-pliesY,spdx,spdy,nespd,b.H,0,0,[b.P[0]+newspd,b.P[1]+1],b.SPE))
-                        drts.append(Drt(b.X,b.Y,spdx,spdy,nespd,b.H,0,0,[b.P[0]+newspd,b.P[1]+1],b.SPE))
+                        drts.append(Drt(b.X+pliesX,b.Y+pliesY,spdx,spdy,nespd,b.H,0,0,[b.P[0]+newspd,b.P[1]+3,1],b.SPE,b.dmg))
+                        drts.append(Drt(b.X-pliesX,b.Y-pliesY,spdx,spdy,nespd,b.H,0,0,[b.P[0]+newspd,b.P[1]+1,1],b.SPE,b.dmg))
+                        drts.append(Drt(b.X,b.Y,spdx,spdy,nespd,b.H,0,0,[b.P[0]+newspd,b.P[1]+1,1],b.SPE,b.dmg))
                        
-            drts.append(Drt(b.X,b.Y,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE))
+            drts.append(Drt(b.X,b.Y,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE,b.dmg))
     sqares=[[g for g in e] for e in sqaresb]
     sqares2 = [[g for g in e] for e in sqaresa]
     for b in enginers:
@@ -1609,7 +1651,14 @@ while running:
     screen.blit(loadify('select'),(40,780)) 
     screen.blit(monksel[select],(50,800))    
     screen.blit(panelloon,(w-240,scroll))
-
+    for b in range(len(bloonprices)):
+        v=len(bloonprices)-b
+        if int((121*v)/118)>locked:
+            screen.blit(lock, (w-240, int((118*(v-1)+scroll+13))))
+        else:
+            break
+    for e in images:
+        screen.blit(e.I,(x,y))
     screen.blit(bloonamount, (w - 240, h-200))
     bwee = finter.render(str(bloonumba), True, (0, 0, 0))
     screen.blit(bwee, (w - 180, h - 150))
@@ -1627,52 +1676,6 @@ while running:
                 bwee = flint.render(str(bloonprices[int((clickpos - 13) / 118)][growmaybe][1]*bloonumba), True, (0, 0, 0))
                 screen.blit(bwee, (XX[0]-162, XX[1]+62))
     pygame.display.update()
-
-    # for e in drts:
-    #     for b in bloons:
-    #         if distanceM(b.X+b.T, b.Y+b.R-10, e.X+5, e.Y+5,-80+b.siz+e.siz):
-    #             b.hploss(1)
-    #             e.special(b)
-    #             e.H -= 1
-    #             if e.H < 1:
-    #                 if e.P[0]>0:
-    #                     xplosions.append(explode(e.x,e.y,explosionI,e.P[0]))
-    #                     for c in bloons:
-    #                         if distanceB(c.X+c.T,c.Y+c.R, e.X+5, e.Y+50,e.P[0]-100):
-    #                             c.hploss(e.P[1])
-    #
-    #                 e.kill()
-    #                 drts.remove(e)
-    #                 del e
-    #                 rel=0
-    #             if rel ==0:
-    #                 rel=1
-    #                 break
-    #             break
-    #
-    # for b in bloons:
-    #     for e in drts2:
-    #         if distanceM(b.X+b.T, b.Y+b.R, e.X, e.Y,-75+b.siz):
-    #             e.H -= 1
-    #             if e.H < 1:
-    #                 if e.P[0]>0:
-    #                     xplosions.append(explode(e.x,e.y,explosionI,e.P[0]))
-    #                     for c in bloons:
-    #                         if distanceB(c.X+c.T,c.Y+c.R, e.X+5, e.Y+50,150+c.siz):
-    #                             c.hploss(e.P[1])
-    #                 if e in blns:
-    #                     blns.remove(e)
-    #                 drts2.remove(e)
-    #                 e.kill()
-    #                 del e
-    #                 if rel==0:
-    #                     rel=1
-    #                     break
-    #                 rel=0
-    #             b.hploss(1)
-    #             if rel ==0:
-    #                 rel=1
-    #                 break
 
     ti+=1
     for e in drtmonks:
