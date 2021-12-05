@@ -907,7 +907,7 @@ def upgrade():
                                                 e.SPE[y] += 0.2
                                         if e.f==0:
                                             e.I = loadify('druid5')
-                                        else
+                                        else:
                                             e.I = loadify('druid6')
                                         e.F=2
                                         cl=0
