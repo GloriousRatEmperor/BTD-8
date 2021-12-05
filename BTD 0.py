@@ -208,10 +208,11 @@ class engin(pygame.sprite.Sprite):
 ball=loadify("druidball")
 druidart=[]
 class Drt(pygame.sprite.Sprite):
-    def __init__(self,X,Y,S,s,I,H,x,y,P,SPE,DMG=1):
+    def __init__(self,X,Y,S,s,I,H,x,y,P,SPE,DMG=1,bounce=0):
         super(Drt, self).__init__()
         self.x=0
         self.dmg=DMG
+        self.b=bounce
         self.y=0
         self.SPE=SPE
         self.IM=0
@@ -537,6 +538,7 @@ class Druid(pygame.sprite.Sprite):
         self.c=c
         self.DS=DS
         self.C=ti
+        self.bounce=0
         self.price = 45
         self.D=timebetweenhits
         self.I=I
@@ -567,25 +569,22 @@ def drtM():
             sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
         if e not in sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)]:
             sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
-        if e.X>1800:
-            e.kill()
-            drts.remove(e)
-            del e
-            
-        elif e.X<-30:
-            e.kill()
-            drts.remove(e)
-            del e
-            
-        elif e.Y>1200:
-            e.kill()
-            drts.remove(e)
-            del e
-            
-        elif e.Y<-30:
-            e.kill()
-            drts.remove(e)
-            del e
+        if not 0<e.X<1800+e.ss[0]/2:
+            if e.b<1:
+                e.kill()
+                drts.remove(e)
+                del e
+            else:
+                e.b -= 1
+                e.S*=-1
+        elif not 0<e.Y<1200+e.ss[1]/2:
+            if e.b < 1:
+                e.kill()
+                drts.remove(e)
+                del e
+            else:
+                e.b-=1
+                e.s*=-1
 def moida():
     global money,income,rn,locked
     for b in range (len(murder)):
@@ -902,13 +901,13 @@ def upgrade():
                                         money-=380
                                         e.DS+=1
                                         e.D/=1.2
-                                        e.c/=2.5
+                                        e.c/=3
                                         for y in range(len(e.SPE)):
                                             if e.SPE[y-1]==2:
                                                 e.SPE[y] += 0.2
                                         if e.f==0:
                                             e.I = loadify('druid5')
-                                        elif e.f==1:
+                                        else
                                             e.I = loadify('druid6')
                                         e.F=2
                                         cl=0
@@ -1003,6 +1002,13 @@ def upgrade():
                                             e.I = loadify('druid6')
                                         e.dmg+=3
                                         cl = 0
+                            elif e.f==1:
+                                if money > 89:
+                                    for e in lvlup:
+                                        e.f = 2
+                                        money -= 90
+                                        e.bounce+=2
+                                        cl = 0
 
                     else:
                         for e in lvlup:
@@ -1090,6 +1096,8 @@ def menuAB(MT,UPGNUM,PGNUM):
     if MT == 5:
         if PGNUM==0:
             screen.blit(loadify('brambles'), (1100, 450))
+        if PGNUM==1:
+            screen.blit(loadify('bouncy'), (1100, 450))
 branch=loadify("thorns")
 thorned=[]
 def bloon():
@@ -1514,7 +1522,7 @@ while running:
                         if xS < 0:
                             spdx *= -1
                         spdy = spdx * yS / xS
-                    druiddart=Drt(b.X + pliesX, b.Y + pliesY, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE, b.dmg)
+                    druiddart=Drt(b.X + pliesX, b.Y + pliesY, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE, b.dmg,b.bounce)
                     druiddart.D=[ti,b.D]
                     drts.append(druiddart)
                     break
