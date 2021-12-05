@@ -260,7 +260,6 @@ class Drt(pygame.sprite.Sprite):
                         loss.SY/=self.SPE[c*2-1]+1
                         loss.IM=1
             elif self.SPE[c*2-2]==2:
-                print(self.SPE[c*2-1],self.SPE[c*2-2])
                 if self.pierce[0]<1:
                     if self.H>1:
                         xplosions.append(explode(self.X,self.Y,self.a,self.D[1]/7*30,10.73/self.D[1]*self.SPE[c*2-1],0))
@@ -1292,7 +1291,7 @@ while running:
                     elif select==4:
                         if money>49:
                             money-=50
-                            druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,4+random.randint(-3,0),650+random.randint(-250,250),200+random.randint(-50,250),[]))
+                            druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,4+random.randint(-3,0),550+random.randint(-350,350),200+random.randint(-50,250),[]))
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
              XX = pygame.mouse.get_pos()
