@@ -131,8 +131,9 @@ class timer(object):
 f=1
 updates=[]
 rn=5
+spc=0
 def rnd(b):
-    global rn,players,nextround,ch
+    global rn,players,nextround,ch,spc
     if b==0:
         nextround = 0
         rn+=1

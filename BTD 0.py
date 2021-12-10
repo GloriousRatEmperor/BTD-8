@@ -686,6 +686,7 @@ def blnM():
                 if e.f>21:
                     health-=e.H
                     murder.append(e)
+
                     e.f=0
                     if health<0:
                         death(100,h//2-200)
@@ -816,6 +817,15 @@ def upgrade():
                                         e.I=loadify('cyborg')
                                         e.P=[80,1,1]
                                         cl=0
+                            elif e.F==3 and e.f<3:
+                                if money>399:
+                                    for e in lvlup:
+                                        e.F=4
+                                        money-=400
+                                        e.ID=loadify('drtbomb')
+                                        e.I=loadify('bombsuit')
+                                        #e.P=[160,3,1,[fire,[120,50,3]]]
+                                        cl=0
 
                         elif e.MID==2:
                             if e.F==0:
@@ -930,18 +940,25 @@ def upgrade():
                                         e.H+=+2
                                         e.f=2
                                         money-=40
-                                        e.I=loadify('beefdrtmonk')
-                                        e.ID=loadify('beefdrt')
+                                        if e.F<3:
+                                            e.I=loadify('beefdrtmonk')
+                                            e.ID=loadify('beefdrt')
                                         cl=0
                             elif e.f==2 and e.F<3:
                                 if money>99:
-                                    for r in range(3):
+                                    for r in range(9):
+                                        r+=1
                                         if e.F>0:
-                                            r/=2
-                                        if r*9.5<e.DS:
-                                            e.H+=3
-                                    e.DS += 2
-                                    e.H += +2
+                                            r*=2
+                                        if r*1.5<e.DS:
+                                            e.H+=1
+                                        else:
+                                            break
+                                    if e.F>0:
+                                        e.DS += 4
+                                    else:
+                                        e.DS += 2
+                                    e.H += 3
                                     e.f = 3
                                     money -= 100
                                     e.ID = loadify('beefyerdrt')
@@ -1002,10 +1019,10 @@ def upgrade():
                                         e.dmg+=3
                                         cl = 0
                             elif e.f==1:
-                                if money > 89:
+                                if money > 59:
                                     for e in lvlup:
                                         e.f = 2
-                                        money -= 90
+                                        money -= 60
                                         e.bounce+=2
                                         cl = 0
 
@@ -1047,6 +1064,8 @@ def menuAB(MT,UPGNUM,PGNUM):
             screen.blit(loadify('nope'),(1100,0))
         elif UPGNUM==2:
             screen.blit(loadify('explodedrt'),(1100,0))
+        elif UPGNUM==3:
+            screen.blit(loadify('incendiary'),(1100,0))
     if MT == 2:
         if UPGNUM==0:
             screen.blit(loadify('turretmenu'),(1100,0))
@@ -1232,7 +1251,7 @@ bloonamount=loadify("killerrock")
 drts3=[]
 bloonumba=1
 bloonprices=[ [[1,0.1],[2,0.23]], [[2,0.2],[4,0.5]], [[3,0.3],[6,0.77]], [[4,0.4],[7,0.9]], [[5,0.5],[10,1.3]],
-             [[10,1],[24,2]], [[14,1.2],[30,2.2]], [[14,1.2],[30,2.2]], [[10,0.9],[24,2]], [[90,0.25],[200,0.5]], [[300,0],[500,0]], [[800,1]],[[1800,-50]] ]
+             [[10,1],[24,2]], [[14,1.2],[30,2.2]], [[14,1.2],[30,2.2]], [[10,0.9],[24,2]], [[90,0.25],[150,0.5]], [[300,0],[500,0]], [[800,1]],[[1800,-50]] ]
 while running:
     XX = pygame.mouse.get_pos()
     for event in pygame.event.get():
@@ -1265,7 +1284,7 @@ while running:
                         if money>24:
                             money-=25
                             drtmonks.append(drtmonkey(XX[0]-60,XX[1]-80,loadify('drtmonk')
-                                                  ,0,0,10+random.randint(-9,10),1
+                                                  ,0,0,10+random.randint(-9,10),1          #10+random.randint(-9,10)
                                                   ,200+random.randint(-120,120),loadify('drtn'),-10,[0,0],[0,0]))
                     elif select==1:
                         if money>74:
@@ -1482,7 +1501,7 @@ while running:
                                 drts2.remove(d)
                                 d.kill()
                                 del d
-
+    moida()
     for e in factories:
         if (ti-e.C)> e.c:
             if not len(e.spikeX)<4:                
@@ -1717,7 +1736,7 @@ while running:
             e.S=0
             e.s=0
             mines.remove(e)
-    moida()
+
 
 
 
