@@ -208,7 +208,7 @@ class engin(pygame.sprite.Sprite):
 ball=loadify("druidball")
 druidart=[]
 class Drt(pygame.sprite.Sprite):
-    def __init__(self,X,Y,S,s,I,H,x,y,P,SPE,DMG=1,bounce=0):
+    def __init__(self,X,Y,S,s,I,H,x,y,P,SPE,DMG=1,bounce=0,pierce=[0,0]):
         super(Drt, self).__init__()
         self.x=0
         self.dmg=DMG
@@ -240,7 +240,7 @@ class Drt(pygame.sprite.Sprite):
         self.S=S
         self.H=H
         self.X=X
-        self.pierce=[1,1]
+        self.pierce=pierce
         self.Y=Y
         self.P=P
         self.siz=(self.ss[0]+self.ss[1])/5
@@ -262,19 +262,21 @@ class Drt(pygame.sprite.Sprite):
             elif self.SPE[c*2-2]==2:
                 if self.pierce[0]<1:
                     if self.H>1:
-                        xplosions.append(explode(self.X,self.Y,self.a,self.D[1]/7*30,10.73/self.D[1]*self.SPE[c*2-1],0))
                         if self.SPE[c*2-1]>1:
                             self.a=pygame.transform.smoothscale(self.I,(int(self.ss[0]*self.SPE[c*2-1]),int(self.ss[1]*self.SPE[c*2-1])))
                             self.ss=self.ss = pygame.Surface.get_size(self.a)
                             self.pierce[1]+=1
                             self.dmg+=2
+                        xplosions.append(
+                            explode(self.X, self.Y, self.a, self.D[1] / 7 * 30, 10.73 / self.D[1] * self.SPE[c * 2 - 1],
+                                    0))
                         self.pierce[0]=self.pierce[1]
                         drts.remove(self)
                         druidart.append(self)
                         self.D[0]=ti
                 else:
                     self.pierce[0]-=1
-                    self.H+=1
+                    self.H +=1
             elif self.SPE[c*2-2]==3:
                 if loss not in thorned and loss.ID>-9:
                     thorned.append(loss)
@@ -530,7 +532,7 @@ class explode(pygame.sprite.Sprite):
         self.t=0
 druids=[]
 class Druid(pygame.sprite.Sprite):
-    def __init__(self,X,Y,I,f,F,DS,c,timebetweenhits,SPE):
+    def __init__(self,X,Y,I,f,F,DS,c,SPE):
         super(Druid, self).__init__()
         monks.append(self)
         self.MID=5
@@ -539,7 +541,7 @@ class Druid(pygame.sprite.Sprite):
         self.C=ti
         self.bounce=0
         self.price = 45
-        self.D=timebetweenhits
+        self.D=DS*100 
         self.I=I
         self.f=f
         self.price=40
@@ -549,6 +551,7 @@ class Druid(pygame.sprite.Sprite):
         self.Y=Y
         self.ID =loadify("druidball")
         self.H=1
+        self.pierce=[0,0]
         self.P = [0]
         self.dmg = 3
 
@@ -867,24 +870,35 @@ def upgrade():
                             if e.F==0:
                                 if money>199:
                                     for e in lvlup:
-                                        e.I=loadify('double')
+                                        if e.f<2:
+                                            e.I=loadify('double')
+                                        else:
+                                            e.I = loadify('doublewide')
                                         e.F=1
                                         money-=200
                                         cl=0
                             elif e.F==1:
                                 if money>199:
                                     for e in lvlup:
-                                        e.I=loadify('triple')
+                                        if e.f<2:
+                                            e.I=loadify("triple")
+                                        else:
+                                            e.I = loadify('triplewide')
+
                                         e.F=2
                                         money-=200
                                         cl=0
                             elif e.F==2:
                                 if money>4499:
                                     for e in lvlup:
-                                        e.I=loadify('tank')
+                                        if e.f<2:
+                                            e.I=loadify('tank')
+                                        else:
+                                            e.I = loadify('tankwide')
                                         e.H+=6
                                         e.dmg += 1
-                                        e.ID=loadify('blcdrt')
+                                        g = pygame.Surface.get_size(e.ID)
+                                        e.ID = pygame.transform.smoothscale(loadify('blcdrt'), (g[0], g[1]))
                                         e.DS*=3
                                         e.F=3
                                         e.c/=1.5
@@ -1002,6 +1016,38 @@ def upgrade():
                                         money-=1000
                                         cl=0
                                         e.G=0
+
+                        elif e.MID==4:
+                            if e.f==0:
+                                if money > 299:
+                                    g=pygame.Surface.get_size(e.ID)
+                                    e.ID=pygame.transform.smoothscale(e.ID,(int(g[0]*1.2), int(g[1]*1.2)))
+                                    money-=300
+                                    e.f+=1
+                                    e.H+=1
+                                    e.c*=1.2
+                                    if e.DS>7:
+                                        e.dmg+=1
+                                    e.DS/=1.2
+                                    cl=0
+                            elif e.f==1:
+                                if money > 399:
+                                    if e.F==0:
+                                        e.I=loadify("gunnerwide")
+                                    elif e.F==1:
+                                        e.I = loadify("doublewide")
+                                    elif e.F == 2:
+                                        e.I = loadify("triplewide")
+                                    elif e.F == 3:
+
+                                        e.I = loadify("tankwide")
+                                    money-=400
+                                    e.f+=1
+                                    e.DS*=1.2
+                                    e.c/=1.4
+                                    cl=0
+
+
                         elif e.MID==5:
                             if e.f==0:
                                 if money > 49:
@@ -1017,12 +1063,23 @@ def upgrade():
                                         elif e.f==1:
                                             e.I = loadify('druid6')
                                         e.dmg+=3
+                                        e.pierce=[1,1]
+                                        e.H+=1
                                         cl = 0
                             elif e.f==1:
-                                if money > 59:
+                                if money > 89:
                                     for e in lvlup:
                                         e.f = 2
-                                        money -= 60
+                                        money -= 90
+                                        e.bounce+=4
+                                        cl = 0
+                            elif e.f==1:
+                                if money > 89:
+                                    for e in lvlup:
+                                        e.SPE.append(3)
+                                        e.SPE.append(0)
+                                        e.f = 2
+                                        money -= 90
                                         e.bounce+=2
                                         cl = 0
 
@@ -1111,6 +1168,11 @@ def menuAB(MT,UPGNUM,PGNUM):
             screen.blit(loadify('menmne'),(1100,450))
         elif PGNUM==1:
             screen.blit(loadify('minemen'),(1100,450))
+    if MT == 4:
+        if PGNUM==0:
+            screen.blit(loadify('larger'),(1100,450))
+        elif PGNUM==1:
+            screen.blit(loadify('greatbarrel'),(1100,450))
     if MT == 5:
         if PGNUM==0:
             screen.blit(loadify('brambles'), (1100, 450))
@@ -1305,12 +1367,12 @@ while running:
                         if money>249:
                             money-=250
                             gunners.append(gunner(XX[0]-60,XX[1]-80,loadify('guner')
-                                                     ,0,0,5+random.randint(-2,2),20+random.randint(-12,12)
+                                                     ,0,0,6+random.randint(-4,4),20+random.randint(-12,12)
                                                   ,loadify('drtn'),1,[0,0],[0,0]))
                     elif select==4:
                         if money>49:
                             money-=50
-                            druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,4+random.randint(-3,0),550+random.randint(-350,350),200+random.randint(-50,250),[]))
+                            druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,(40+random.randint(-30,0))//10,550+random.randint(-350,350),[]))
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
              XX = pygame.mouse.get_pos()
@@ -1540,7 +1602,7 @@ while running:
                         if xS < 0:
                             spdx *= -1
                         spdy = spdx * yS / xS
-                    druiddart=Drt(b.X + pliesX, b.Y + pliesY, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE, b.dmg,b.bounce)
+                    druiddart=Drt(b.X + pliesX, b.Y + pliesY, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE, b.dmg,b.bounce,[e for e in b.pierce])
                     druiddart.D=[ti,b.D]
                     drts.append(druiddart)
                     break
