@@ -92,6 +92,7 @@ sqares2=[[g for g in e] for e in sqares]
 class drtmonkey(pygame.sprite.Sprite):
     def __init__(self,X,Y,I,f,F,DS,H,c,ID,LS,P,SPE,dmg=1):
         super(drtmonkey, self).__init__()
+        self.SPX=[]
         if LS==-10:
             monks.append(self)
             self.price = 20
@@ -208,13 +209,14 @@ class engin(pygame.sprite.Sprite):
 ball=loadify("druidball")
 druidart=[]
 class Drt(pygame.sprite.Sprite):
-    def __init__(self,X,Y,S,s,I,H,x,y,P,SPE,DMG=1,bounce=0,pierce=[0,0]):
+    def __init__(self,X,Y,S,s,I,H,x,y,P,SPE,DMG=1,bounce=0,Specialonexplosion=[]):
         super(Drt, self).__init__()
         self.x=0
         self.dmg=DMG
         self.b=bounce
         self.y=0
         self.SPE=SPE
+        self.SPX=Specialonexplosion
         self.IM=0
         self.I=I
         if xS==0:
@@ -240,7 +242,6 @@ class Drt(pygame.sprite.Sprite):
         self.S=S
         self.H=H
         self.X=X
-        self.pierce=pierce
         self.Y=Y
         self.P=P
         self.siz=(self.ss[0]+self.ss[1])/5
@@ -259,7 +260,35 @@ class Drt(pygame.sprite.Sprite):
                         loss.SX/=self.SPE[c*2-1]+1
                         loss.SY/=self.SPE[c*2-1]+1
                         loss.IM=1
-            elif self.SPE[c*2-2]==2:
+    def xplod(d):
+        xplosions.append(explode(d.x, d.y, d.P[2], d.P[0]))
+        for c in bloons:
+            if c.armr < d.P[1]:
+                if distanceB(c.X + c.T, c.Y + c.R, d.X + 5, d.Y + 50, d.P[0] + c.siz):
+                    for r in range(len(d.SPX)//2):
+                        if d.SPX[r * 2 - 2] == 4:
+                            if c not in burning and c.ID>-9:
+                                burning.append(c)
+                                c.firetick=[0,d.SPX[r*2-1][0]]
+                                c.firedmg=d.SPX[r*2-1][1]
+                    if int(d.P[1])>0:
+                        c.hploss(int(d.P[1]) - c.armr)
+            # if ti % 7 == 0:
+            #     for e in xplosions:
+            #         e.t += 30
+            #         e.I = pygame.transform.scale(e.i, (int((e.t * 3 + e.Start) * e.S), int((e.t * 3 + e.Start) * e.S)))
+            #         e.s = pygame.Surface.get_size(e.I)
+            #         if e.t > e.T:
+            #             xplosions.remove(e)
+            #             e.kill()
+            #             del e
+
+class druidball(Drt):
+    def __init__(self,X,Y,S,s,I,H,x,y,P,SPE,DMG=1,bounce=0,pierce=[0,0]):
+        super().__init__(X,Y,S,s,I,H,x,y,P,SPE,DMG,bounce)
+        self.pierce=pierce
+        def special(self, loss):
+            if self.SPE[c*2-2]==2:
                 if self.pierce[0]<1:
                     if self.H>1:
                         if self.SPE[c*2-1]>1:
@@ -284,15 +313,6 @@ class Drt(pygame.sprite.Sprite):
                     loss.SY/=loss.S*10
                     loss.SX /=loss.S*10
                     loss.S = 0.1
-            # if ti % 7 == 0:
-            #     for e in xplosions:
-            #         e.t += 30
-            #         e.I = pygame.transform.scale(e.i, (int((e.t * 3 + e.Start) * e.S), int((e.t * 3 + e.Start) * e.S)))
-            #         e.s = pygame.Surface.get_size(e.I)
-            #         if e.t > e.T:
-            #             xplosions.remove(e)
-            #             e.kill()
-            #             del e
 
 minemine=loadify('supermine')
 class mine(pygame.sprite.Sprite):
@@ -444,7 +464,7 @@ class Bloon(pygame.sprite.Sprite):
             bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                        [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                        [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                       [10, 20, 9, -5, [[5, 5]]],[7, int(20 + rn / 12), 10,-6,[[4,9]],2], [16, rn + 65, 0, -11, [[4, 9]]],
+                       [10, 20, 9, -5, [[5, 5]]],[7, int(20 + rn / 12), 10,-6,[[4,5]],1], [16, rn + 65, 0, -11, [[4, 9]]],
                        [3, rn * 3 + 120, 0, -10, [[4, 11]]] ]
 
             what=bloonlistdingus[which]
@@ -460,6 +480,10 @@ class Bloon(pygame.sprite.Sprite):
                                 , what[1], self.f
                                 , self.r, what[3], self.h,what[2],what[4], armour, 0,self.made)
             bloons.append(newbloon)
+            if self in burning:
+                burning.append(newbloon)
+                newbloon.firetick=self.firetick
+                newbloon.firedmg=self.firedmg
             if overkill<0:
                 newbloon.hploss(-overkill)
     def grow(e,howmuch=1):
@@ -541,7 +565,7 @@ class Druid(pygame.sprite.Sprite):
         self.C=ti
         self.bounce=0
         self.price = 45
-        self.D=DS*100 
+        self.D=DS*100
         self.I=I
         self.f=f
         self.price=40
@@ -604,6 +628,8 @@ def moida():
                     ready()
              if e in thorned:
                  thorned.remove(e)
+             if e in burning:
+                 burning.remove(e)
              if e in force:
                  force.remove(e)
              if e in growbloon:
@@ -612,7 +638,7 @@ def moida():
 nspd=0
 nespd=0
 newspd=0
-spe=[loadify('purple'),loadify('regpur'),loadify('blnSHA'),loadify('blnSH')]
+spe=[loadify('purple'),loadify('regpur'),loadify('blnSHA'),loadify('blnSH'),loadify('blooncart')]
 health=100
 ss=0
 SS=0
@@ -725,7 +751,7 @@ def sendbloon(stuff):
     bloonlistcomplete = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
                        [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
                        [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                       [10, 20, 9, -5, [[5, 5]]],[7, int(20 + rn / 12), 10,-6,[[4,9]],1], [16, rn + 50, 0, -11, [[4, 9]]],
+                       [10, 20, 9, -5, [[5, 5]]],[7, int(20 + rn / 12), 10,-6,[[4,5]],1], [16, rn + 50, 0, -11, [[4, 9]]],
                        [3, rn * 3 + 100, 0, -10, [[4, 11]]] ]
     what = bloonlistcomplete[stuff[1]]
     if len(stuff)>3:
@@ -763,6 +789,7 @@ headers = {'Content-type': 'application/json'}
 def ready():
     global heredy,thorned,growbloon
     thorned=[]
+    burning=[]
     growbloon=[]
     roundshow(100, 500, rn - 3)
     pygame.display.update()
@@ -827,7 +854,9 @@ def upgrade():
                                         money-=400
                                         e.ID=loadify('drtbomb')
                                         e.I=loadify('bombsuit')
-                                        #e.P=[160,3,1,[fire,[120,50,3]]]
+                                        e.P=[160,1,1]
+                                        e.SPX.append(4)
+                                        e.SPX.append([e.c,1])
                                         cl=0
 
                         elif e.MID==2:
@@ -1180,11 +1209,18 @@ def menuAB(MT,UPGNUM,PGNUM):
             screen.blit(loadify('bouncy'), (1100, 450))
 branch=loadify("thorns")
 thorned=[]
+burning=[]
 def bloon():
     for e in bloons:
         screen.blit(e.I,(e.x-e.EX,e.y-e.EY))
     for b in thorned:
         screen.blit(pygame.transform.smoothscale(branch,(b.s[0],b.s[1])), (b.x - b.EX, b.y - b.EY))
+    for c in burning:
+        c.firetick[0]+=1
+        if c.firetick[0]>c.firetick[1]:
+            c.firetick[0]=0
+            c.hploss(c.firedmg+c.armr)
+        screen.blit(pygame.transform.smoothscale(fire[int(c.firetick[0]/c.firetick[1]*(len(fire)-1))],(c.s[0],c.s[1])), (c.x - c.EX, c.y - c.EY))
 def drtmonk():
     for e in drtmonks:
         screen.blit(e.I,(e.X,e.Y))
@@ -1272,6 +1308,9 @@ cf=0
 explod1=[]
 explod2=[]
 explod3=[]
+fire=[]
+for e in range(74):
+    fire.append(loadanimation("feuer",'t'+str(e)))
 for e in range(25):
     explod1.append(loadanimation("boombiatch",'t'+str(e)))
 for e in range(104):
@@ -1326,9 +1365,9 @@ while running:
                             if bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba<=money:
                                 growmaybe=0
                                 if XX[0]>w-100:
-                                    if int((clickpos-13)/118)<10:
+                                    if int((clickpos-13)/118)<11:
                                         growmaybe=1
-                                connection.Send({"action": "send", "what": [bloonumba, int((clickpos-13)/118),growmaybe*random.randint(100,400)]})
+                                connection.Send({"action": "send", "what": [bloonumba, int((clickpos-13)/118),growmaybe*random.randint(150,250)]})
                                 money-=bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba
                                 income+=bloonprices[int((clickpos-13)/118)][growmaybe][1]*bloonumba
                 elif XX[0]>w-100:
@@ -1434,7 +1473,8 @@ while running:
                  if event.key == pygame.K_q:
                      money+=1000
                  elif event.key == pygame.K_BACKSLASH:
-                     CheaterPowers=1
+                     CheaterPowers-=1
+                     CheaterPowers *= -1
         if event.type == pygame.QUIT:
            pygame. quit()
     connection.Pump()
@@ -1532,12 +1572,7 @@ while running:
                             d.H -= 1
                             if d.H < 1:
                                 if d.P[0]>0:
-                                    xplosions.append(explode(d.x,d.y,d.P[2],d.P[0]))
-                                    for c in bloons:
-                                        if d.P[1]>c.armr:
-                                            if distanceB(c.X+c.T,c.Y+c.R, d.X+5, d.Y+50,d.P[0]+c.siz):
-                                                c.hploss(d.P[1]-c.armr)
-
+                                    d.xplod()
                                 d.kill()
                                 drts.remove(d)
                                 del d
@@ -1602,7 +1637,7 @@ while running:
                         if xS < 0:
                             spdx *= -1
                         spdy = spdx * yS / xS
-                    druiddart=Drt(b.X + pliesX, b.Y + pliesY, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE, b.dmg,b.bounce,[e for e in b.pierce])
+                    druiddart=druidball(b.X + pliesX, b.Y + pliesY, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE, b.dmg,b.bounce,[e for e in b.pierce])
                     druiddart.D=[ti,b.D]
                     drts.append(druiddart)
                     break
@@ -1638,10 +1673,10 @@ while running:
                             spdx*=-1
                         spdy=spdx*yS/xS
  
-                    drts.append(Drt(b.X+pliesX,b.Y+pliesY,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE,b.dmg))
+                    drts.append(Drt(b.X+pliesX,b.Y+pliesY,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE,b.dmg,0,[e for e in b.SPX]))
                     if b.LS>0:
                         if b.F>0:
-                            drts.append(Drt(b.X+pliesX-spdx,b.Y+pliesY-spdy,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE,b.dmg))
+                            drts.append(Drt(b.X+pliesX-spdx,b.Y+pliesY-spdy,spdx,spdy,b.ID,b.H,0,0,b.P,b.SPE,b.dmg,0,[e for e in b.SPX]))
                     rel+=b.Q
                     if rel==1:
                         break
@@ -1756,7 +1791,7 @@ while running:
             if 118 * len(bloonprices) + 13 > clickpos > 12:
                 growmaybe=0
                 if XX[0]>w-100:
-                    if int((clickpos - 13) / 118)<10:
+                    if int((clickpos - 13) / 118)<11:
                         growmaybe=1
                 screen.blit(board, (XX[0] - 300, XX[1]))
                 bwee = flint.render(str(bloonprices[int((clickpos - 13) / 118)][growmaybe][0]*bloonumba), True, (0, 0, 0))
