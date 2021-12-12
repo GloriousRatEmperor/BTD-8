@@ -1220,7 +1220,7 @@ def bloon():
         if c.firetick[0]>c.firetick[1]:
             c.firetick[0]=0
             c.hploss(c.firedmg+c.armr)
-        screen.blit(pygame.transform.smoothscale(fire[int(c.firetick[0]/c.firetick[1]*(len(fire)-1))],(c.s[0],c.s[1])), (c.x - c.EX, c.y - c.EY))
+        screen.blit(pygame.transform.smoothscale(fire[int(c.firetick[0]/c.firetick[1]*(len(fire)-1))],(c.s[0],c.s[1])), (c.x - c.EX-c.s[0]//2, c.y - c.EY-c.s[1]//3))
 def drtmonk():
     for e in drtmonks:
         screen.blit(e.I,(e.X,e.Y))
