@@ -287,7 +287,8 @@ class druidball(Drt):
     def __init__(self,X,Y,S,s,I,H,x,y,P,SPE,DMG=1,bounce=0,pierce=[0,0]):
         super().__init__(X,Y,S,s,I,H,x,y,P,SPE,DMG,bounce)
         self.pierce=pierce
-        def special(self, loss):
+    def special(self, loss):
+        for c in range(len(self.SPE)//2):
             if self.SPE[c*2-2]==2:
                 if self.pierce[0]<1:
                     if self.H>1:
