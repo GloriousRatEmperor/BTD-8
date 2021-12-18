@@ -51,6 +51,7 @@ flont = pygame.font.Font('freesansbold.ttf',80)
 flint = pygame.font.Font('freesansbold.ttf',30)
 screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 w, h = pygame.display.get_surface().get_size()
+w-=240
 pygame.display.set_caption("BTD Battles 8")
 icon = loadify('drtmonk')
 pygame.display.set_icon(icon)
@@ -76,15 +77,9 @@ mines=[]
 murder=[]
 sqares=[]
 sqaresize=100
-x=int(sqaresize/2)
-y=int(sqaresize/2)
-for e in range(400):
+for e in range(204):
     sqares.append([])
-    x+=sqaresize
-    if x>w:
-        x=sqaresize/2
-        y+=sqaresize
-maxsqare=19
+maxsqare=17
 sqaresa=[[g for g in e] for e in sqares]
 sqaresb=[[g for g in e] for e in sqares]
 sqares2=[[g for g in e] for e in sqares]
@@ -298,7 +293,7 @@ class druidball(Drt):
                             self.pierce[1]+=1
                             self.dmg+=2
                         xplosions.append(
-                            explode(self.X, self.Y, self.a, self.D[1] / 7 * 30, 10.73 / self.D[1] * self.SPE[c * 2 - 1],
+                            explode(self.X, self.Y, self.a, self.D[1] / 7 * 30, 10.73 / self.D[1] * self.SPE[c * 2 - 1]*4/7,
                                     0))
                         self.pierce[0]=self.pierce[1]
                         drts.remove(self)
@@ -575,27 +570,19 @@ class Druid(pygame.sprite.Sprite):
         self.X=X
         self.Y=Y
         self.ID =loadify("druidball")
-        self.H=1
+        self.H=2
         self.pierce=[0,0]
         self.P = [0]
         self.dmg = 3
 
 
 def drtM():
-    rel=0
     for e in drts:
         e.X+=e.S
         e.Y+=e.s
         e.x=int(e.X)
         e.y=int(e.Y)
 
-        sqares2[int((e.X + e.ss[0]) // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
-        if e not in sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
-            sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-        if e not in sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)]:
-            sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-        if e not in sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)]:
-            sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
         if not 0<e.X<1800+e.ss[0]/2:
             if e.b<1:
                 e.kill()
@@ -612,6 +599,22 @@ def drtM():
             else:
                 e.b-=1
                 e.s*=-1
+        else:
+            for d in range( int( 1 + ( min((int( ( e.X + e.ss[0] ) // sqaresize),maxsqare)) - int( e.X // sqaresize )  ) )):
+                for i in range(int(1 + (  min  (int( e.Y + e.ss[1] // sqaresize ),11 ) - int( e.Y // sqaresize )  ))):
+                    sqares2[int((e.X + d*sqaresize) // sqaresize + (e.Y + i*sqaresize) // sqaresize * maxsqare)-1].append(e)
+
+        # sqares2[int((e.X + e.ss[0]) // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
+        #
+        # if e not in sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
+        #     sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
+        #
+        # if e not in sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)]:
+        #     sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
+        #
+        # if e not in sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)]:
+        #     sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
+
 def moida():
     global money,income,rn,locked
     for b in range (len(murder)):
@@ -682,23 +685,39 @@ def blnM():
         e.y=int(e.Y)
         if e not in drts2:
             if e.X>0:
-                sqares[int((e.X + e.s[0]) // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)].append(e)
-                if e not in sqares[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
-                    sqares[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-                if e not in sqares[int((e.X + e.s[0]) // sqaresize + e.Y // sqaresize * maxsqare)]:
-                    sqares[int((e.X + e.s[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-                if e not in sqares[int(e.X // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)]:
-                    sqares[int(e.X // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)].append(e)
+                for d in range(int(1 + (min((int((e.X + e.s[0]) // sqaresize), maxsqare)) - int(e.X // sqaresize)))):
+                    for i in range(int(1 + (min(int(e.Y + e.s[1] // sqaresize), 11) - int(e.Y // sqaresize)))):
+                        sqares[int((e.X + d * sqaresize) // sqaresize + (
+                                    e.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
+                # for d in range(min(int(1 + (int((e.X + e.s[0]) // sqaresize - int(e.X // sqaresize)))), maxsqare)):
+                #     for i in range(min(int(1 + (int((e.Y + e.s[1]) // sqaresize - int(e.Y // sqaresize)))), 11)):
+                #         print(int((e.X + d * sqaresize) // sqaresize + (e.Y + i * sqaresize) // sqaresize * maxsqare)-1)
+                #         sqares[int((e.X + d * sqaresize) // sqaresize + (e.Y + i * sqaresize) // sqaresize * maxsqare)-1].append(e)
+                # sqares[int((e.X + e.s[0]) // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)].append(e)
+                # if e not in sqares[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
+                #     sqares[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
+                # if e not in sqares[int((e.X + e.s[0]) // sqaresize + e.Y // sqaresize * maxsqare)]:
+                #     sqares[int((e.X + e.s[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
+                # if e not in sqares[int(e.X // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)]:
+                #     sqares[int(e.X // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)].append(e)
         else:
-            sqares2[
-                int((e.X + e.ss[0]) // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(
-                e)
-            if e not in sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
-                sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-            if e not in sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)]:
-                sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-            if e not in sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)]:
-                sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
+            for d in range( int( 1 + ( min((int( ( e.X + e.ss[0] ) // sqaresize),maxsqare)) - int( e.X // sqaresize )  ) )):
+                for i in range(int(1 + (  min  (int( e.Y + e.ss[1] // sqaresize ),11 ) - int( e.Y // sqaresize )  ))):
+                    sqares2[int((e.X + d*sqaresize) // sqaresize + (e.Y + i*sqaresize) // sqaresize * maxsqare)-1].append(e)
+            # for d in range(min(int(1 + (int((e.X + e.ss[0]) // sqaresize - int(e.X // sqaresize)))), maxsqare)):
+            #     for i in range(min(int(1 + (int((e.Y + e.ss[1]) // sqaresize - int(e.Y // sqaresize)))), 11)):
+            #         sqares2[
+            #             int((e.X + d * sqaresize) // sqaresize + (e.Y + i * sqaresize) // sqaresize * maxsqare)-1].append(
+            #             e)
+            # sqares2[
+            #     int((e.X + e.ss[0]) // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(
+            #     e)
+            # if e not in sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
+            #     sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
+            # if e not in sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)]:
+            #     sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
+            # if e not in sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)]:
+            #     sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
         if distanceB(e.X, e.Y, e.n[e.f-1], e.n[e.f],-90):
             e.SY=0
             if e.ID==99:
@@ -938,10 +957,8 @@ def upgrade():
                             if e.F==0:
                                 if money > 39:
                                     for e in lvlup:
-                                        e.H=9
+                                        e.H+=10
                                         money-=40
-                                        e.SPE.append(2)
-                                        e.SPE.append(1)
                                         if e.f==0:
                                             e.I = loadify('druid2')
                                         elif e.f==1:
@@ -1221,7 +1238,7 @@ def bloon():
         if c.firetick[0]>c.firetick[1]:
             c.firetick[0]=0
             c.hploss(c.firedmg+c.armr)
-        screen.blit(pygame.transform.smoothscale(fire[int(c.firetick[0]/c.firetick[1]*(len(fire)-1))],(c.s[0],c.s[1])), (c.x - c.EX-c.s[0]//2, c.y - c.EY-c.s[1]//3))
+        screen.blit(pygame.transform.scale(fire[int(c.firetick[0]/c.firetick[1]*(len(fire)-1))],(c.s[0],c.s[1])), (c.x - c.EX-c.s[0]//2, c.y - c.EY-c.s[1]//3))
 def drtmonk():
     for e in drtmonks:
         screen.blit(e.I,(e.X,e.Y))
@@ -1323,7 +1340,7 @@ explod=[explod1,explod2,explod3]
 spikY=0
 pliesY = 0
 lo = 1
-moar=[pygame.transform.smoothscale(loadify('btd map'),(w,h)).get_size(),loadify('btd map').get_size()]
+moar=[pygame.transform.smoothscale(loadify('btd map'),(w-240,h)).get_size(),loadify('btd map').get_size()]
 tracY=[170, 170, 170, 170, 170, 170, 131, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 120, 147, 173, 200, 226, 252, 279, 305, 347, 397, 447, 497, 547, 597, 611, 612, 613, 613, 614, 615, 616, 617, 618, 619, 602, 552, 502, 452, 402, 368, 365, 362, 365, 415, 465, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 563, 613, 663, 713, 763, 813, 863, 913, 963, 1013, 170, 170, 170]
 tracX=[110, 160, 210, 260, 310, 360, 376, 411, 461, 511, 561, 611, 661, 711, 761, 811, 861, 911, 961, 1011, 1061, 1111, 1161, 1210, 1252, 1294, 1337, 1379, 1422, 1464, 1507, 1522, 1523, 1525, 1526, 1528, 1529, 1492, 1442, 1392, 1342, 1292, 1242, 1192, 1142, 1092, 1042, 1009, 1007, 1005, 1003, 1001, 984, 934, 884, 839, 836, 833, 825, 775, 725, 675, 625, 575, 525, 475, 425, 375, 368, 368, 367, 366, 365, 364, 363, 362, 361, 360, -36, -84, -133]
 for e in tracY:
@@ -1348,7 +1365,7 @@ board=loadify("board")
 panelloon=loadify("bloonyroad")
 panelsize = pygame.Surface.get_size(panelloon)
 panelsize=panelsize[1]
-back=pygame.transform.smoothscale(loadify('btd map'),(w,h))
+back=pygame.transform.smoothscale(loadify('btd map'),(w+240,h))
 bloonamount=loadify("killerrock")
 drts3=[]
 bloonumba=1
@@ -1358,20 +1375,20 @@ while running:
     XX = pygame.mouse.get_pos()
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if XX[0]>w-200:
+            if XX[0]>w+40:
                 if XX[1]<h-200:
                     clickpos=XX[1]-scroll
                     if 118*len(bloonprices)+13>clickpos>12:
                         if int((clickpos-13)/118)<locked:
                             if bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba<=money:
                                 growmaybe=0
-                                if XX[0]>w-100:
+                                if XX[0]>w+140:
                                     if int((clickpos-13)/118)<11:
                                         growmaybe=1
                                 connection.Send({"action": "send", "what": [bloonumba, int((clickpos-13)/118),growmaybe*random.randint(150,250)]})
                                 money-=bloonprices[int((clickpos-13)/118)][growmaybe][0]*bloonumba
                                 income+=bloonprices[int((clickpos-13)/118)][growmaybe][1]*bloonumba
-                elif XX[0]>w-100:
+                elif XX[0]>w+140:
                     if XX[1] < h - 100:
                         bloonumba+=1
                     elif bloonumba>1:
@@ -1412,7 +1429,7 @@ while running:
                     elif select==4:
                         if money>49:
                             money-=50
-                            druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,(40+random.randint(-30,0))//10,550+random.randint(-350,350),[]))
+                            druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,(40+random.randint(-30,0))//10,550+random.randint(-350,350),[2,1]))
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
              XX = pygame.mouse.get_pos()
@@ -1561,7 +1578,7 @@ while running:
     #         b.T=20
     #         b.R=35
 
-    for z in range(400):
+    for z in range(204):
         for b in sqares[z]:
             for d in sqares2[z]:
                 if d in drts:
@@ -1609,14 +1626,20 @@ while running:
                 spikX=(1-cl)*e.spikeX[elo]+e.spikeX[elo+1]*cl
                 spikY=(1-cl)*e.spikeY[elo]+e.spikeY[elo+1]*cl
                 drtnew=Drt2(int(spikX),int(spikY),e.ID,e.H,e.LS+ti,e.f,e.F,e.tracpos,e.P)
-                sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)].append(drtnew)
-                if drtnew not in sqaresa[int(drtnew.X // sqaresize + drtnew.Y // sqaresize * maxsqare)]:
-                    sqaresa[int(drtnew.X // sqaresize + drtnew.Y // sqaresize * maxsqare)].append(drtnew)
-                if drtnew not in sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + drtnew.Y // sqaresize * maxsqare)]:
-                    sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + drtnew.Y // sqaresize * maxsqare)].append(drtnew)
-                if drtnew not in sqaresa[int(drtnew.X // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)]:
-                    sqaresa[int(drtnew.X // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)].append(drtnew)
-                drts2.append(drtnew)
+
+                for d in range(int(1 + (min((int((drtnew.X + drtnew.ss[0]) // sqaresize), maxsqare)) - int(drtnew.X // sqaresize)))):
+                    for i in range(int(1 + (min(int(drtnew.Y + drtnew.ss[1] // sqaresize), 11) - int(drtnew.Y // sqaresize)))):
+                        sqaresa[int((drtnew.X + d * sqaresize) // sqaresize + (
+                                    drtnew.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(drtnew)
+
+                # sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)].append(drtnew)
+                # if drtnew not in sqaresa[int(drtnew.X // sqaresize + drtnew.Y // sqaresize * maxsqare)]:
+                #     sqaresa[int(drtnew.X // sqaresize + drtnew.Y // sqaresize * maxsqare)].append(drtnew)
+                # if drtnew not in sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + drtnew.Y // sqaresize * maxsqare)]:
+                #     sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + drtnew.Y // sqaresize * maxsqare)].append(drtnew)
+                # if drtnew not in sqaresa[int(drtnew.X // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)]:
+                #     sqaresa[int(drtnew.X // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)].append(drtnew)
+                # drts2.append(drtnew)
     for e in druidart:
         if e.D[0]+e.D[1]<ti:
             drts.append(e)
@@ -1774,24 +1797,24 @@ while running:
     hpshow(10,10)
     screen.blit(loadify('select'),(40,780)) 
     screen.blit(monksel[select],(50,800))    
-    screen.blit(panelloon,(w-240,scroll))
+    screen.blit(panelloon,(w,scroll))
     for b in range(len(bloonprices)):
         v=len(bloonprices)-b
         if int((121*v)/118)>locked:
-            screen.blit(lock, (w-240, int((118*(v-1)+scroll+13))))
+            screen.blit(lock, (w, int((118*(v-1)+scroll+13))))
         else:
             break
     for e in images:
         screen.blit(e.I,(x,y))
-    screen.blit(bloonamount, (w - 240, h-200))
+    screen.blit(bloonamount, (w, h-200))
     bwee = finter.render(str(bloonumba), True, (0, 0, 0))
-    screen.blit(bwee, (w - 180, h - 150))
-    if XX[0]>w-200:
+    screen.blit(bwee, (w +60, h - 150))
+    if XX[0]>w+40:
         if XX[1] < h - 200:
             clickpos = XX[1] - scroll
             if 118 * len(bloonprices) + 13 > clickpos > 12:
                 growmaybe=0
-                if XX[0]>w-100:
+                if XX[0]>w+140:
                     if int((clickpos - 13) / 118)<11:
                         growmaybe=1
                 screen.blit(board, (XX[0] - 300, XX[1]))

@@ -132,12 +132,12 @@ f=1
 updates=[]
 rn=5
 spc=0
+blnpower=[1,2.2,3.4,4.4,5.6,8,14,12,10,20,20,30,40]
 def rnd(b):
-    global rn,players,nextround,ch,spc
+    global rn,players,nextround,ch,spc,blnpower
     if b==0:
         nextround = 0
         rn+=1
-    blnamount=1
     spc = random.randint(2, 30)
     ch = 5
     regrow = random.choice([0, 1])
@@ -159,23 +159,19 @@ def rnd(b):
                 spc += 10
         if rn > 30:
             ch = random.randint(1, 11)
-            if ch>8:
-                blnamount-=0.3
         elif rn > 20:
             ch = random.randint(1, 9)
-            if ch<7:
-                blnamount+=1
         elif rn > 15:
             ch = random.randint(1, 6)
-            blnamount+=0.2
         else:
             ch = random.randint(1, 3)
         if ch == 7:
             spc += 10
             #[howmany, which, regrow (random.randint(50,350) is standard)]
     for channel in srvr.all_channels:
-        sendamount=min(int(blnamount*rn / int(ch / 2 + 1)),150)
-        channel.Send({"action": "ugotbloonsmon", "takedis": [sendamount, ch-1, regrow, min(spc,int(200/sendamount))]})
+        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 4 + 1)),150)
+        print(min(spc,int(45000/sendamount**2)))
+        channel.Send({"action": "ugotbloonsmon", "takedis": [sendamount, ch-1, regrow, min(spc,int(45000/sendamount**2))]})
     if random.randint(int(rn / 3), rn) > 10 + b * 2:
         rnd(b + 1)
 
