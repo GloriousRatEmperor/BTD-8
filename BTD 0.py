@@ -61,7 +61,7 @@ PXSPD=0
 PYSPD=0
 YY = 0
 growbloon=[]
-money=50
+money=100
 pas=time.time()
 bloons=[]
 lvlup = []
@@ -790,7 +790,7 @@ def sendbloon(stuff):
         bloons.append(Bloon(-50 - e * spc,150, (what[0])/5
                             , what[1], 1
                             ,stuff[2], what[3], what[2], what[2],what[4],armour,0,sent))
-income=25
+income=50
 def roundshow(x,y,l):
     dead = fint.render("round" + str(l), True, (0, 255, 0))
     screen.blit(dead, (x, y))
@@ -1410,7 +1410,7 @@ while running:
                             money-=75
                             enginers.append(engin(XX[0]-60,XX[1]-80,enginer
                                                       ,0,0,15+random.randint(-10,15),1
-                                                      ,1000+random.randint(-600,600)
+                                                      ,1000+random.randint(-680,600)
                                                       ,loadify('turret'),200+random.randint(-120,120)
                                                       ,loadify('nail'),1000,[0,0],[0,0]))
                     elif select==2:
