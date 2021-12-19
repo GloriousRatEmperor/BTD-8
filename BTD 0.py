@@ -572,7 +572,7 @@ class Druid(pygame.sprite.Sprite):
         self.D=1
         self.I=I
         self.f=f
-        self.price=3
+        self.price=45
         self.SPE=SPE
         self.F=F
         self.X=X
@@ -1435,8 +1435,8 @@ while running:
                                                      ,0,0,6+random.randint(-4,4),20+random.randint(-12,12)
                                                   ,loadify('drtn'),1,[0,0],[0,0]))
                     elif select==4:
-                        if money>4:
-                            money-=5
+                        if money>49:
+                            money-=50
                             druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,(40+random.randint(-30,0))//10,550+random.randint(-350,350),[2,1]))
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
@@ -1654,26 +1654,25 @@ while running:
             drts.append(e)
             druidart.remove(e)
     for b in druids:
-        if (ti - b.C) > b.c:
-            for e in bloons:
-                if distanceM(e.X + e.T, e.Y + e.R, b.X + 67, b.Y + 60, 350 + e.siz):
-                    pliesX = 15
-                    pliesY = 20
-                    b.C = ti
-                    xS = (e.X + e.T) - (b.X + pliesX)
-                    yS = (e.Y + e.R) - (b.Y + pliesY)
-                    if xS == 0:
-                        spdx = b.DS
-                        spdy = 0
-                    else:
-                        spdx = b.DS / math.sqrt(yS ** 2 / xS ** 2 + 1)
-                        if xS < 0:
-                            spdx *= -1
-                        spdy = spdx * yS / xS
-                    druiddart=druidball(b.X + pliesX, b.Y + pliesY, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE, b.dmg,b.bounce,[e for e in b.pierce])
-                    druiddart.D=[ti,b.D]
-                    drts.append(druiddart)
-                    break
+        for e in bloons:
+            if distanceM(e.X + e.T, e.Y + e.R, b.X + 67, b.Y + 60, 350 + e.siz):
+                pliesX = 15
+                pliesY = 20
+                b.C = ti
+                xS = (e.X + e.T) - (b.X + pliesX)
+                yS = (e.Y + e.R) - (b.Y + pliesY)
+                if xS == 0:
+                    spdx = b.DS
+                    spdy = 0
+                else:
+                    spdx = b.DS / math.sqrt(yS ** 2 / xS ** 2 + 1)
+                    if xS < 0:
+                        spdx *= -1
+                    spdy = spdx * yS / xS
+                druiddart=druidball(b.X + pliesX, b.Y + pliesY, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE, b.dmg,b.bounce,[e for e in b.pierce])
+                druiddart.D=[ti,b.D]
+                drts.append(druiddart)
+                break
 
     for b in drtmonks:
         if (ti-b.C)> b.c:
