@@ -569,11 +569,10 @@ class Druid(pygame.sprite.Sprite):
         self.DS=DS
         self.C=ti
         self.bounce=0
-        self.price = 45
         self.D=1
         self.I=I
         self.f=f
-        self.price=40
+        self.price=3
         self.SPE=SPE
         self.F=F
         self.X=X
@@ -1436,8 +1435,8 @@ while running:
                                                      ,0,0,6+random.randint(-4,4),20+random.randint(-12,12)
                                                   ,loadify('drtn'),1,[0,0],[0,0]))
                     elif select==4:
-                        if money>49:
-                            money-=50
+                        if money>4:
+                            money-=5
                             druids.append(Druid(XX[0]-60,XX[1]-80,loadify('druid'),0,0,(40+random.randint(-30,0))//10,550+random.randint(-350,350),[2,1]))
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
