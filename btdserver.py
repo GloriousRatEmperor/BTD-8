@@ -131,24 +131,23 @@ class timer(object):
 f=1
 updates=[]
 rn=5
-spc=0
-blnpower=[1,2.2,3.4,4.4,5.6,8,14,12,10,20,20,30,40]
+roundsize=0
+blnpower=[1,1.8,2.5,3.3,4,7,13,11,11,15,20,30,40]
 def rnd(b):
-    global rn,players,nextround,ch,spc,blnpower
+    global rn,players,nextround,ch,blnpower,roundsize
     if b==0:
+        roundsize=min(1500,rn*random.randint(4,120))
         nextround = 0
         rn+=1
-    spc = random.randint(2, 30)
     ch = 5
     regrow = random.choice([0, 1])
     if rn > 60:
         ch = random.randint(9, 13)
         if ch == 13:
             regrow = 0
-            spc += 20
         else:
             ch=5
-    elif regrow == 1:
+    if regrow == 1:
         regrow =random.randint(150, 250)
 
     if ch == 5:
@@ -156,7 +155,6 @@ def rnd(b):
             ch = random.randint(1, 12)
             if ch==12:
                 regrow=0
-                spc += 10
         if rn > 30:
             ch = random.randint(1, 11)
         elif rn > 20:
@@ -165,13 +163,10 @@ def rnd(b):
             ch = random.randint(1, 6)
         else:
             ch = random.randint(1, 3)
-        if ch == 7:
-            spc += 10
             #[howmany, which, regrow (random.randint(50,350) is standard)]
     for channel in srvr.all_channels:
-        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 4 + 1)),150)
-        print(min(spc,int(45000/sendamount**2)))
-        channel.Send({"action": "ugotbloonsmon", "takedis": [sendamount, ch-1, regrow, min(spc,int(45000/sendamount**2))]})
+        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 4 + 1+b)),50+b)
+        channel.Send({"action": "ugotbloonsmon", "takedis": [sendamount, ch-1, regrow, roundsize/sendamount]})
     if random.randint(int(rn / 3), rn) > 10 + b * 2:
         rnd(b + 1)
 

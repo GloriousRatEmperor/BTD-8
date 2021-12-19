@@ -163,6 +163,7 @@ class factory(pygame.sprite.Sprite):
                     numba=i*2-1
                     gobl=distanceC(blntrac[i*2-2], blntrac[i*2-1],self.X+60,self.Y+60)
         self.tracpos=numba
+
         self.MID=3
         self.ID=ID
         self.H=H
@@ -171,6 +172,7 @@ class factory(pygame.sprite.Sprite):
         self.G=100000000
         self.C=ti
         self.I=I
+        self.Dmg=1
         self.f=f
         self.F=F
         self.P=P
@@ -258,14 +260,14 @@ class Drt(pygame.sprite.Sprite):
     def xplod(d):
         xplosions.append(explode(d.x, d.y, d.P[2], d.P[0]))
         for c in bloons:
-            if c.armr < d.P[1]:
-                if distanceB(c.X + c.T, c.Y + c.R, d.X + 5, d.Y + 50, d.P[0] + c.siz):
-                    for r in range(len(d.SPX)//2):
-                        if d.SPX[r * 2 - 2] == 4:
-                            if c not in burning and c.ID>-9:
-                                burning.append(c)
-                                c.firetick=[0,d.SPX[r*2-1][0]]
-                                c.firedmg=d.SPX[r*2-1][1]
+            if distanceB(c.X + c.T, c.Y + c.R, d.X + 5, d.Y + 50, d.P[0] + c.siz):
+                for r in range(len(d.SPX)//2):
+                    if d.SPX[r * 2 - 2] == 4:
+                        if c not in burning and c.ID>-9:
+                            burning.append(c)
+                            c.firetick=[0,d.SPX[r*2-1][0]]
+                            c.firedmg=d.SPX[r*2-1][1]
+                if c.armr < d.P[1]:
                     if int(d.P[1])>0:
                         c.hploss(int(d.P[1]) - c.armr)
             # if ti % 7 == 0:
@@ -336,6 +338,13 @@ class mine(pygame.sprite.Sprite):
         self.C=int(ss[1]/2)
     def special(self,loss):
         pass
+    def xplod(d):
+        xplosions.append(explode(d.x, d.y, d.P[2], d.P[0]))
+        for c in bloons:
+            if distanceB(c.X + c.T, c.Y + c.R, d.X + 5, d.Y + 50, d.P[0] + c.siz):
+                if c.armr < d.P[1]:
+                    if int(d.P[1])>0:
+                        c.hploss(int(d.P[1]) - c.armr)
 class Drt2(pygame.sprite.Sprite):
     def __init__(self,X,Y,I,H,LS,PR,CR,f,P,dmg=1):
         super(Drt2, self).__init__()
@@ -367,6 +376,7 @@ class Bloon(pygame.sprite.Sprite):
         global power,POWER,yeano
         blns.append(self)
         self.n=blntrac
+        print(S)
         self.armr=armr
         self.EX=0
         self.made=sent
@@ -488,7 +498,7 @@ class Bloon(pygame.sprite.Sprite):
                 e.HH += min(howmuch,e.h-e.HH)
                 if e.HH>5 and not e.ID==-1:
                     forms = [[0, 1, -2, [[2,4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
-                             [10, 20, -5, [[5, 5]]],[7, int(30 + rn / 8), -6,[[4,9]],1]]
+                             [10, 20, -5, [[5, 5]]],[7, int(20+rn/12), -6,[[4,5]],1]]
 
                     if e.HH > 6:
                         e.HH = e.h
@@ -602,7 +612,7 @@ def drtM():
         else:
             for d in range( int( 1 + ( min((int( ( e.X + e.ss[0] ) // sqaresize),maxsqare)) - int( e.X // sqaresize )  ) )):
                 for i in range(int(1 + (  min  (int( e.Y + e.ss[1] // sqaresize ),11 ) - int( e.Y // sqaresize )  ))):
-                    sqares2[int((e.X + d*sqaresize) // sqaresize + (e.Y + i*sqaresize) // sqaresize * maxsqare)-1].append(e)
+                    sqares2[int((min(e.X,w) + d*sqaresize) // sqaresize + (min(e.Y,h) + i*sqaresize) // sqaresize * maxsqare)-1].append(e)
 
         # sqares2[int((e.X + e.ss[0]) // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
         #
@@ -774,9 +784,11 @@ def sendbloon(stuff):
                        [10, 20, 9, -5, [[5, 5]]],[7, int(20 + rn / 12), 10,-6,[[4,5]],1], [16, rn + 50, 0, -11, [[4, 9]]],
                        [3, rn * 3 + 100, 0, -10, [[4, 11]]] ]
     what = bloonlistcomplete[stuff[1]]
+    if what[3]>-10:
+        what[0]+=min(rn,60)/5
     if len(stuff)>3:
         sent=0
-        spc=stuff[3]
+        spc=stuff[3]*(what[0])/5
     else:
         spc=5
         sent=1
@@ -784,8 +796,6 @@ def sendbloon(stuff):
         armour = what[5]
     else:
         armour = 0
-    if what[3]>-10:
-        what[0]+=min(rn,60)/5
     for e in range (stuff[0]):
         bloons.append(Bloon(-50 - e * spc,150, (what[0])/5
                             , what[1], 1
@@ -807,7 +817,7 @@ hippo=0
 heredy=0
 headers = {'Content-type': 'application/json'}
 def ready():
-    global heredy,thorned,growbloon
+    global heredy,thorned,growbloon,burning
     thorned=[]
     burning=[]
     growbloon=[]
@@ -1055,6 +1065,7 @@ def upgrade():
                                         money-=250
                                         e.P=[35,1,1]
                                         e.ID=loadify('mineS')
+                                        e.Dmg+=1
                                         cl=0
                             elif e.f==1:
                                 if money>999:
@@ -1238,7 +1249,7 @@ def bloon():
         if c.firetick[0]>c.firetick[1]:
             c.firetick[0]=0
             c.hploss(c.firedmg+c.armr)
-        screen.blit(pygame.transform.scale(fire[int(c.firetick[0]/c.firetick[1]*(len(fire)-1))],(c.s[0],c.s[1])), (c.x - c.EX-c.s[0]//2, c.y - c.EY-c.s[1]//3))
+        screen.blit(pygame.transform.scale(fire[int(c.firetick[0]/c.firetick[1]*(len(fire)-1))],(c.s[0],c.s[1])), (c.x, c.y))
 def drtmonk():
     for e in drtmonks:
         screen.blit(e.I,(e.X,e.Y))
@@ -1625,12 +1636,13 @@ while running:
                 cl=random.uniform(0,1)
                 spikX=(1-cl)*e.spikeX[elo]+e.spikeX[elo+1]*cl
                 spikY=(1-cl)*e.spikeY[elo]+e.spikeY[elo+1]*cl
-                drtnew=Drt2(int(spikX),int(spikY),e.ID,e.H,e.LS+ti,e.f,e.F,e.tracpos,e.P)
+                drtnew=Drt2(int(spikX),int(spikY),e.ID,e.H,e.LS+ti,e.f,e.F,e.tracpos,e.P,e.Dmg)
 
                 for d in range(int(1 + (min((int((drtnew.X + drtnew.ss[0]) // sqaresize), maxsqare)) - int(drtnew.X // sqaresize)))):
                     for i in range(int(1 + (min(int(drtnew.Y + drtnew.ss[1] // sqaresize), 11) - int(drtnew.Y // sqaresize)))):
                         sqaresa[int((drtnew.X + d * sqaresize) // sqaresize + (
                                     drtnew.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(drtnew)
+                drts2.append(drtnew)
 
                 # sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)].append(drtnew)
                 # if drtnew not in sqaresa[int(drtnew.X // sqaresize + drtnew.Y // sqaresize * maxsqare)]:
