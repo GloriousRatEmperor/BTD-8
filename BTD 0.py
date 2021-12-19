@@ -570,7 +570,7 @@ class Druid(pygame.sprite.Sprite):
         self.C=ti
         self.bounce=0
         self.price = 45
-        self.D=DS*100
+        self.D=0
         self.I=I
         self.f=f
         self.price=40
