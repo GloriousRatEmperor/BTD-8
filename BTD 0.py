@@ -376,7 +376,6 @@ class Bloon(pygame.sprite.Sprite):
         global power,POWER,yeano
         blns.append(self)
         self.n=blntrac
-        print(S)
         self.armr=armr
         self.EX=0
         self.made=sent
@@ -701,7 +700,6 @@ def blnM():
                                     e.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
                 # for d in range(min(int(1 + (int((e.X + e.s[0]) // sqaresize - int(e.X // sqaresize)))), maxsqare)):
                 #     for i in range(min(int(1 + (int((e.Y + e.s[1]) // sqaresize - int(e.Y // sqaresize)))), 11)):
-                #         print(int((e.X + d * sqaresize) // sqaresize + (e.Y + i * sqaresize) // sqaresize * maxsqare)-1)
                 #         sqares[int((e.X + d * sqaresize) // sqaresize + (e.Y + i * sqaresize) // sqaresize * maxsqare)-1].append(e)
                 # sqares[int((e.X + e.s[0]) // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)].append(e)
                 # if e not in sqares[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
