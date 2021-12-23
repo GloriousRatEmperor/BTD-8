@@ -138,7 +138,7 @@ def rnd(b):
     if b==0:
         roundsize=min(1500,rn*random.randint(4,120))
         nextround = 0
-        rn+=1
+        rn+=10
     ch = 5
     regrow = random.choice([0, 1])
     if rn > 60:
