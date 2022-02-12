@@ -404,7 +404,7 @@ class mine(pygame.sprite.Sprite):
     def xplod(d):
         xplosions.append(explode(d.x, d.y, d.P[2], d.P[0]))
         for c in bloons:
-            if distanceB(c.X + c.T, c.Y + c.R, d.X + 5, d.Y + 50, d.P[0] + c.siz):
+            if distanceB(c.X + c.T, c.Y + c.R, d.X, d.Y, d.P[0] + c.siz):
                 if c.armr < d.P[1]:
                     if int(d.P[1]) > 0:
                         c.hploss(int(d.P[1]) - c.armr)
@@ -718,6 +718,7 @@ def drtM():
             else:
                 e.b -= 1
                 e.s *= -1
+
         else:
             for d in range(int(1 + (min((int((e.X + e.ss[0]) // sqaresize), maxsqare)) - int(e.X // sqaresize)))):
                 for i in range(int(1 + (min(int(e.Y + e.ss[1] // sqaresize), 11) - int(e.Y // sqaresize)))):
