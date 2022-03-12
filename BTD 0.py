@@ -441,7 +441,7 @@ class Bloon(pygame.sprite.Sprite):
         blns.append(self)
         self.lists=[]
         self.lists.append(blns)
-        self.n = blntrac
+        self.n = [e for e in blntrac]
         self.armr = armr
         if deathrattle==0:
             self.ondeath = []
@@ -494,7 +494,7 @@ class Bloon(pygame.sprite.Sprite):
             self.img = boss2
         self.X = X
         self.Y = Y
-        self.f = [e for e in f]
+        self.f = f
         ss = pygame.Surface.get_size(self.I)
         self.s = pygame.Surface.get_size(self.I)
         self.siz = (ss[0] + ss[1]) / 4
