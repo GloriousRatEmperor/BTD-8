@@ -717,8 +717,8 @@ def drtM():
         else:
             for d in range(int(1 + (min((int((e.X + e.ss[0]) // sqaresize), maxsqare)) - int(e.X // sqaresize)))):
                 for i in range(int(1 + (min(int(e.Y + e.ss[1] // sqaresize), 11) - int(e.Y // sqaresize)))):
-                    sqares2[int((min(e.X, w) + d * sqaresize) // sqaresize + (
-                                min(e.Y, h) + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
+                    sqares2[min(len(sqares2)-1,int((e.X + d * sqaresize) // sqaresize + (
+                                min(e.Y, h) + i * sqaresize) // sqaresize * maxsqare) - 1)].append(e)
 
         # sqares2[int((e.X + e.ss[0]) // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
         #
@@ -1588,6 +1588,7 @@ tracX = [110, 160, 210, 260, 310, 360, 376, 411, 461, 511, 561, 611, 661, 711, 7
          1392, 1342, 1292, 1242, 1192, 1142, 1092, 1042, 1009, 1007, 1005, 1003, 1001, 984, 934, 884, 839, 836, 833,
          825, 775, 725, 675, 625, 575, 525, 475, 425, 375, 368, 368, 367, 366, 365, 364, 363, 362, 361, 360, -36, -84,
          -133]
+print(moar[0][0])
 for e in tracY:
     e *= moar[0][1] / moar[1][1]
 for e in tracX:
