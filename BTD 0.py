@@ -1950,7 +1950,7 @@ while running:
                                 b.hploss(d.dmg - b.armr)
                             if d.H < 1:
                                 if d.P[0] > 0:
-                                    xplosions.append(explode(d.x, d.y, d.P[2], d.P[0]))
+                                    xplosions.append(explode(d.X, d.X, d.P[2], d.P[0]))
                                     for c in bloons:
                                         if c.armr < d.P[1]:
                                             if distanceB(c.X, c.Y, d.X + 5, d.Y + 50, 100+d.P[0] + c.siz):
