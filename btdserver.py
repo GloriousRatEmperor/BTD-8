@@ -7,6 +7,7 @@ import pygame
 import math
 countdown=-1
 nextround=0
+mapchosen=0
 class player_channel(Channel):
     def __init__(self, conn=None, addr=(), server=None, map=None):
         super().__init__(conn=conn, addr=addr, server=server, map=map)
@@ -39,6 +40,17 @@ class player_channel(Channel):
         for channel in self.server.all_channels:
             if channel is not self:
                 channel.Send({"action": "ugotbloonsmon", "takedis":data["what"]})
+
+    def Network_mapchoose(self, data):
+        global mapchosen
+        if len(players)==2 and mapchosen==0:
+            mapchosen=1
+            print(12)
+            for channel in self.server.all_channels:
+                print(25)
+                channel.Send({"action": "mapchosen", "info": data["what"]})
+        else:
+            print([len(players)==2, mapchosen])
 
     def Network_ready(self,data):
         global nextround
@@ -138,7 +150,7 @@ def rnd(b):
     if b==0:
         roundsize=min(1500,rn*random.randint(4,120))
         nextround = 0
-        rn+=10
+        rn+=1
     ch = 5
     regrow = random.choice([0, 1])
     if rn > 60:
@@ -158,14 +170,17 @@ def rnd(b):
         if rn > 30:
             ch = random.randint(1, 11)
         elif rn > 20:
+            print(3)
             ch = random.randint(1, 9)
         elif rn > 15:
+            print(2)
             ch = random.randint(1, 6)
         else:
+            print(1)
             ch = random.randint(1, 3)
             #[howmany, which, regrow (random.randint(50,350) is standard)]
     for channel in srvr.all_channels:
-        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 4 + 1+b)),50+b)
+        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 5 + 1+b)),50+b)
         channel.Send({"action": "ugotbloonsmon", "takedis": [sendamount, ch-1, regrow, roundsize/sendamount]})
     if random.randint(int(rn / 3), rn) > 10 + b * 2:
         rnd(b + 1)

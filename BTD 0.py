@@ -10,13 +10,12 @@ from pyglet.window import Window
 from pyglet.gl import *
 from pygame.locals import *
 from PodSixNet.Connection import connection, ConnectionListener
-
+btdmap=0
 with open("ip.txt", "r") as ip:
     ipadress = ip.read()
 
 connection.DoConnect((ipadress, 5071))
-
-
+blntrac=[]
 class MyNetworkListener(ConnectionListener):
 
     def Network(self, data):
@@ -31,6 +30,14 @@ class MyNetworkListener(ConnectionListener):
 
     def Network_ugotbloonsmon(self, data):
         sendbloon(data["takedis"])
+
+    def Network_mapchosen(self, data):
+        global btdmap,maps,chosen,blntrac,mapspecial
+        btdmap=maps[(data["info"])[0]-1]
+        chosen=100
+        blntrac=blntracks[(data["info"])[0]-1]
+        mapspecial=mapspecials[(data["info"])[0]-1]
+
 
 
 nwl = MyNetworkListener()
@@ -64,8 +71,8 @@ finter = pygame.font.Font('freesansbold.ttf', 48)
 flont = pygame.font.Font('freesansbold.ttf', 80)
 flint = pygame.font.Font('freesansbold.ttf', 30)
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-w, h = pygame.display.get_surface().get_size()
-w -= 240
+W, h = pygame.display.get_surface().get_size()
+w =W-240
 pygame.display.set_caption("BTD Battles 8")
 icon = loadify('drtmonk')
 pygame.display.set_icon(icon)
@@ -309,10 +316,11 @@ class Drt(pygame.sprite.Sprite):
                         loss.IM = 1
 
     def xplod(d):
-        xplosions.append(explode(d.x, d.y, d.P[2], d.P[0]))
+        xplosions.append(explode(d.x+d.V, d.y+d.C, d.P[2], d.P[0]))
+                     #X, Y, i, T, howfast=1, strt=60
         for c in bloons:
             if c not in murder:
-                if distanceB(c.X + c.T, c.Y + c.R, d.X + 5, d.Y + 50, d.P[0] + c.siz):
+                if distanceB(c.X, c.Y, d.X, d.Y, d.P[0] + c.siz):
                     for r in range(len(d.SPX) // 2):
                         if d.SPX[r * 2 - 2] == 4:
                             if c not in burning and c.ID > -9:
@@ -323,15 +331,6 @@ class Drt(pygame.sprite.Sprite):
                     if c.armr < d.P[1]:
                         if int(d.P[1]) > 0:
                             c.hploss(int(d.P[1]) - c.armr)
-            # if ti % 7 == 0:
-            #     for e in xplosions:
-            #         e.t += 30
-            #         e.I = pygame.transform.scale(e.i, (int((e.t * 3 + e.Start) * e.S), int((e.t * 3 + e.Start) * e.S)))
-            #         e.s = pygame.Surface.get_size(e.I)
-            #         if e.t > e.T:
-            #             xplosions.remove(e)
-            #             e.kill()
-            #             del e
 
 
 class druidball(Drt):
@@ -402,12 +401,13 @@ class mine(pygame.sprite.Sprite):
         pass
 
     def xplod(d):
-        xplosions.append(explode(d.x, d.y, d.P[2], d.P[0]))
+        xplosions.append(explode(d.x+d.V, d.y+50+d.C, d.P[2], d.P[0]))
         for c in bloons:
-            if distanceB(c.X + c.T, c.Y + c.R, d.X, d.Y, d.P[0] + c.siz):
-                if c.armr < d.P[1]:
-                    if int(d.P[1]) > 0:
-                        c.hploss(int(d.P[1]) - c.armr)
+            if c not in murder:
+                if distanceB(c.X, c.Y, d.X, d.Y+50, d.P[0] + c.siz):
+                    if c.armr < d.P[1]:
+                        if int(d.P[1]) > 0:
+                            c.hploss(int(d.P[1]) - c.armr)
 
 
 class Drt2(pygame.sprite.Sprite):
@@ -425,14 +425,9 @@ class Drt2(pygame.sprite.Sprite):
         self.ss = pygame.Surface.get_size(self.a)
         self.X = X
         self.Y = Y
-        if self.PR < 1:
-            self.x = X
-            self.y = Y
-        else:
-            self.x = X - 35
-            self.y = Y - 35
         self.a = pygame.transform.rotate(self.I, random.randint(0, 1800) / math.pi)
-
+        self.V = int(self.ss[0] / 2)
+        self.C = int(self.ss[1] / 2)
 
 yeano = 1
 rndbloon = []
@@ -517,8 +512,8 @@ class Bloon(pygame.sprite.Sprite):
         global hploss, money, rel, POWER, power
         if self not in murder:
             if self.ID == 1:
-                self.H -= loss
-                self.HH -= loss
+                self.H -= int(loss)
+                self.HH -= int(loss)
                 if self.H < 1:
                     murder.append(self)
                     self.lists.append(murder)
@@ -549,17 +544,17 @@ class Bloon(pygame.sprite.Sprite):
                 #     self.I = self.i[self.H-1]
 
     def make(self, which, overkill):
-        if which + overkill > -1:
-            bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []],
-                               [10, 5, 5, 1, []],
-                               [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]],
-                               [10, 5, 8, -4, [[1, 5], [4, 2]]],
-                               [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                               [10, 20, 9, -5, [[5, 5]]], [7, int(20 + rn / 12), 10, -6, [[4, 5]], 1],
-                               [16, rn + 65, 0, -11, [[4, 9]]],
-                               [3, rn * 3 + 120, 0, -10, [[4, 11]]]]
+        bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []],
+                           [10, 5, 5, 1, []],
+                           [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]],
+                           [10, 5, 8, -4, [[1, 5], [4, 2]]],
+                           [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
+                           [10, 20, 9, -5, [[5, 5]]], [7, int(20 + rn / 12), 10, -6, [[4, 5]], 1],
+                           [16, rn + 65, 0, -11, [[4, 9]]],
+                           [3, rn * 3 + 120, 0, -10, [[4, 11]]]]
+        what = bloonlistdingus[which]
 
-            what = bloonlistdingus[which]
+        if int(what[2] + overkill) > 0:
             if what[3] > -10:
                 what[0] += min(rn, 60) / 5
             # what = [speed,health,HH(wierdhelf),ID,spawn,EX,EY]
@@ -585,9 +580,9 @@ class Bloon(pygame.sprite.Sprite):
         global lightning
         for b in range(len(e.ondeath)):
             if e.ondeath[b][1] == 0:
-                xplosions.append(explode(e.x+e.T, e.y+e.R,lightning, e.ondeath[b][0][1],2,5))
+                xplosions.append(explode(e.x, e.y,lightning, e.ondeath[b][0][1],2,5))
                 for c in bloons:
-                    if distanceB(c.X + c.T, c.Y + c.R, e.x+e.T, e.y+e.R,e.ondeath[b][0][1]*2 + c.siz):
+                    if distanceB(c.X, c.Y, e.x, e.y,e.ondeath[b][0][1]*2 + c.siz):
                         if c.armr < e.ondeath[b][0][0]:
                             if int(e.ondeath[b][0][0]) > 0:
                                 c.hploss(int(e.ondeath[b][0][0]) - c.armr)
@@ -655,9 +650,9 @@ class explode(pygame.sprite.Sprite):
                 self.ii = explod[i]
                 self.faze = 0
 
-        self.X = X + 30
+        self.X = X
         self.Start = strt
-        self.Y = Y + 30
+        self.Y = Y
         self.T = T
         self.S = howfast
         self.s = pygame.Surface.get_size(self.i)
@@ -863,7 +858,7 @@ def blnM():
                         del e
                 else:
                     e.f += 2
-                    if e.f > 21:
+                    if e.f > len(blntrac)-1:
                         health -= e.H
                         murder.append(e)
                         e.lists.append(murder)
@@ -880,9 +875,8 @@ ti = 0
 xS = 0
 spc = 15
 yS = 0
-
-blntrac = [370, 150, 370, 85, 1200, 95, 1520, 300, 1520, 600, 990, 600
-    , 990, 340, 820, 340, 820, 500, 350, 500, 350, 1050]
+blntrac2=[]
+blntrac1 = [152, 215,385, 215, 385, 110, 1245, 120, 1565, 325, 1565, 620, 1035, 620, 1035, 365, 860, 365, 860, 525, 395, 525, 395, 1075]
 spdx = 0
 elo = 0
 spdy = 0
@@ -937,7 +931,7 @@ def sendbloon(stuff):
         else:
             regrow=stuff[2]
         for e in range(stuff[0]):
-            bloondelay.append(Bloon(e * spc+ti, 150, (what[0]) / 5
+            bloondelay.append(Bloon(e * spc+ti, blntrac[1], (what[0]) / 5
                                 , what[1], 1
                                 , regrow, what[3], what[2], what[2], what[4], armour, 0, sent,deathrattle))
         bloondelay=sorted(bloondelay,key=arrivetime)
@@ -974,6 +968,7 @@ headers = {'Content-type': 'application/json'}
 
 def ready():
     global heredy, thorned, growbloon, burning
+    mapspecial()
     roundshow(100, 500, rn - 3)
     pygame.display.update()
     connection.Send(
@@ -1316,7 +1311,6 @@ def upgrade():
                                         money -= 50
                                         drtmonks.append(e)
                                         e.c=((e.rang)**2)/470
-                                        print(((e.rang)**2)/470)
                                         e.price+=40
                                         if e.F == 0:
                                             e.I = loadify('druid02')
@@ -1446,7 +1440,7 @@ burning = []
 
 def bloon():
     for e in bloons:
-        screen.blit(e.I, (e.x - e.EX, e.y - e.EY))
+        screen.blit(e.I, (e.x - e.EX-e.T, e.y - e.EY-e.R))
     for b in thorned:
         screen.blit(pygame.transform.smoothscale(branch, (b.s[0], b.s[1])), (b.x - b.EX, b.y - b.EY))
     for c in burning:
@@ -1482,7 +1476,7 @@ def drt():
     for e in drts:
         screen.blit(e.a, (e.x - e.V, e.y - e.C))
     for e in drts2:
-        screen.blit(e.a, (e.x, e.y))
+        screen.blit(e.a, (e.X- e.V, e.Y- e.C+50))
     for e in gunners:
         screen.blit(e.IB, (e.X - e.EX, e.Y - e.EY))
     for e in xplosions:
@@ -1510,9 +1504,6 @@ def distanceC(eneX, eneY, bulX, bulY):
 
 
 bl = 10
-yoggstoth=Bloon(50, 150, 1, 1, 1, 0, 1, 1, 0)
-yoggstoth.lists.append(bloons)
-bloons.append(yoggstoth)
 
 
 def paused(x, y):
@@ -1619,7 +1610,7 @@ board = loadify("board")
 panelloon = loadify("bloonyroad")
 panelsize = pygame.Surface.get_size(panelloon)
 panelsize = panelsize[1]
-back = pygame.transform.smoothscale(loadify('btd map'), (w + 240, h))
+back = pygame.transform.smoothscale(loadify('btd map'), (W, h))
 bloonamount = loadify("killerrock")
 drts3 = []
 bloonumba = 1
@@ -1627,6 +1618,158 @@ bloonprices = [[[1, 0.1], [2, 0.23]], [[2, 0.2], [4, 0.5]], [[3, 0.3], [6, 0.77]
                [[5, 0.5], [10, 1.3]],
                [[10, 1], [24, 2]], [[14, 1.2], [30, 2.2]], [[14, 1.2], [30, 2.2]], [[10, 0.9], [24, 2]],
                [[80, 2]],[[90, 0.25], [150, 0.5]], [[300, 0], [500, 0]], [[800, 1]], [[1800, -50]]]
+chosen=0
+yard=pygame.transform.smoothscale(loadify("backyard"), (w, h))
+maps=[back,yard]
+stopper=loadify("pathstopper")
+blntrac2=[215, 434, 1455, 700]
+def mapspecial1():
+    pass
+blunpath=loadify("path")
+
+def mapspecial2():
+    global blntrac,images
+    images=[]
+    blntrac=[blntrac[0],blntrac[1]]
+    for e in range(min(len(monks),6)):
+        theone=monks[random.randint(0,len(monks)-1)]
+        if not blntrac[len(blntrac)-2]==theone.XX:
+            blntrac.append(theone.XX)
+            blntrac.append(theone.YY)
+            xS = (blntrac[len(blntrac) - 2]) - (blntrac[len(blntrac) - 4])
+            yS = (blntrac[len(blntrac) - 1]) - (blntrac[len(blntrac) - 3])
+            if xS == 0:
+                spdx = 100
+                spdy = 0
+            else:
+                spdx = 100 / math.sqrt(yS ** 2 / xS ** 2 + 1)
+                if xS < 0:
+                    spdx *= -1
+                spdy = spdx * yS / xS
+            newpathh = pygame.transform.smoothscale(blunpath, (
+                int(distanceC(blntrac[len(blntrac) - 2], blntrac[len(blntrac) - 1], blntrac[len(blntrac) - 4],
+                              blntrac[len(blntrac) - 3])), 140))
+
+            print(spdx, spdy)
+            if spdx == 0:
+                if spdy < 0:
+                    newpath = pygame.transform.rotate(newpathh, -90)
+                else:
+                    newpath = pygame.transform.rotate(newpathh, 90)
+                extray = 1
+            elif spdx > 0:
+                newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
+                print(10)
+            else:
+                newpath = pygame.transform.rotate(newpathh, 180 - math.atan(spdy / spdx) * 180 / math.pi)
+
+            if spdx > 0 and spdy > 0:
+                extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+                extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+            elif spdx > 0 and spdy < 0:
+                extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+                extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+            elif spdx < 0 and spdy < 0:
+                extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+                extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+            else:
+                extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+                extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+            if xS < 0:
+                ximg = blntrac[len(blntrac) - 2]
+            else:
+                ximg = blntrac[len(blntrac) - 4]
+            if yS < 0:
+                yimg = blntrac[len(blntrac) - 1]
+            else:
+                yimg = blntrac[len(blntrac) - 3]
+            print(extray, extrax)
+            images.append(Image(newpath, ximg - extrax, yimg - extray))
+
+
+
+    blntrac.append(1)
+    blntrac.append(1000)
+    xS = (blntrac[len(blntrac) - 2]) - (blntrac[len(blntrac) - 4])
+    yS = (blntrac[len(blntrac) - 1]) - (blntrac[len(blntrac) - 3])
+    if xS == 0:
+        spdx = 100
+        spdy = 0
+    else:
+        spdx = 100 / math.sqrt(yS ** 2 / xS ** 2 + 1)
+        if xS < 0:
+            spdx *= -1
+        spdy = spdx * yS / xS
+    newpathh = pygame.transform.smoothscale(blunpath, (
+        int(distanceC(blntrac[len(blntrac) - 2], blntrac[len(blntrac) - 1], blntrac[len(blntrac) - 4],
+                      blntrac[len(blntrac) - 3])), 140))
+
+    print(spdx, spdy)
+    if spdx == 0:
+        if spdy < 0:
+            newpath = pygame.transform.rotate(newpathh, -90)
+        else:
+            newpath = pygame.transform.rotate(newpathh, 90)
+        extray = 1
+    elif spdx > 0:
+        newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
+        print(10)
+    else:
+        newpath = pygame.transform.rotate(newpathh, 180 - math.atan(spdy / spdx) * 180 / math.pi)
+
+    if spdx>0 and spdy>0:
+        extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+        extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+    elif spdx>0 and spdy<0:
+        extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+        extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+    elif spdx < 0 and spdy < 0:
+        extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+        extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+    else:
+        extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+        extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+    if xS < 0:
+        ximg = blntrac[len(blntrac) - 2]
+    else:
+        ximg = blntrac[len(blntrac) - 4]
+    if yS < 0:
+        yimg = blntrac[len(blntrac) - 1]
+    else:
+        yimg = blntrac[len(blntrac) - 3]
+    print(extray, extrax)
+    images.append(Image(newpath , ximg- extrax, yimg - extray))
+
+    for b in range(len(blntrac)//2):
+        images.append(Image(stopper, blntrac[b*2-2]-70, blntrac[b*2-1]-70))
+
+
+mapspecials=[mapspecial1,mapspecial2]
+blntracks=[blntrac1,blntrac2]
+mapsel=1
+option=loadify("settingspannel")
+while chosen==0:
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                connection.Send({"action": "mapchoose", "what": [mapsel]})
+            if event.mod & pygame.KMOD_ALT:
+                if event.key == pygame.K_F4:
+                    chosen=1/0
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            XX = pygame.mouse.get_pos()
+            if XX[0] > W//2:
+                mapsel=min(mapsel+1,len(maps))
+            else:
+                mapsel = max(mapsel -1, 1)
+    screen.blit(maps[mapsel-1], (0, 0))
+    screen.blit(option, (w, 0))
+    pygame.display.update()
+    connection.Pump()
+    nwl.Pump()
+yoggstoth=Bloon(50, 150, 1, 1, 1, 0, 1, 1, 0)
+yoggstoth.lists.append(bloons)
+bloons.append(yoggstoth)
 while running:
     XX = pygame.mouse.get_pos()
     for event in pygame.event.get():
@@ -1770,6 +1913,7 @@ while running:
         if b.faze < int(b.t / b.T * len(b.ii)):
             b.faze = int(b.t / b.T * len(b.ii))
             b.i = b.ii[b.faze - 1]
+
     for e in xplosions:
         e.t += 4
         if e.t > e.T:
@@ -1781,77 +1925,18 @@ while running:
         else:
             e.I = pygame.transform.smoothscale(e.i, (int((e.t * 3 + e.Start) * e.S), int((e.t * 3 + e.Start) * e.S)))
             e.s = pygame.Surface.get_size(e.I)
+
     if CheaterPowers == 1:
         for e in bloons:
             e.hploss(100)
-    # r = requests.post('http://' + ipadress + ':5000/anynew', headers=headers,
-    #                   data=jsonpickle.encode(me.ID))
-    # thing = jsonpickle.decode(r.text)
-    # for e in thing:
-    #     updatelist[e[0]](e[1])
 
-    # for b in force:
-    #     #PO:amount of charges, max charges po:for shield recharge cooldown, second is time of shield expiration, first is cooldonw neccessary
-    #     if b.PO[0]>0:
-    #         for e in drts2:
-    #             if distanceB(b.X+b.EX, b.Y+b.EY, e.X+5, e.Y+50,42):
-    #                 b.PO[0] -= 1
-    #                 if b.PO[0] < 1:
-    #                     b.I=spe[3]
-    #                     b.EX=0
-    #                     b.EY=0
-    #                     b.T=32
-    #                     b.R=40
-    #                     b.po[1]=ti
-    #                     rel=0
-    #                 e.H -= 10
-    #                 if e.H < 1:
-    #                     for b in sqaresa:
-    #                         if e in b:
-    #                             b.remove(e)
-    #                     if e in blns:
-    #                         blns.remove(e)
-    #                     drts2.remove(e)
-    #                     e.kill()
-    #                     del e
-    #                     rel=0
-    #                 if rel ==0:
-    #                     rel=1
-    #                     break
-    #         for e in drts:
-    #             if distanceB(b.X+b.EX, b.Y+b.EY, e.X+5, e.Y+50,32):
-    #                 b.PO[0] -= 1
-    #                 if b.PO[0] < 1:
-    #                     b.I=spe[3]
-    #                     b.EX=0
-    #                     b.EY=0
-    #                     b.T=32
-    #                     b.R=40
-    #                     b.po[1]=ti
-    #                     rel=0
-    #                 e.H -= 3
-    #                 if e.H < 1:
-    #                     drts.remove(e)
-    #                     e.kill()
-    #                     del e
-    #                 if rel ==0:
-    #                     rel=1
-    #                     break
-    #
-    #     elif ti-b.po[1]> b.po[0]:
-    #         b.PO[0]=b.PO[1]
-    #         b.I=spe[2]
-    #         b.EX=20
-    #         b.EY=35
-    #         b.T=20
-    #         b.R=35
 
     for z in range(204):
         for b in sqares[z]:
             for d in sqares2[z]:
                 if d in drts:
                     if b not in murder:
-                        if distanceB(b.X + b.T, b.Y + b.R - 10, d.X + 5, d.Y + 5, 20 + b.siz + d.siz):
+                        if distanceB(b.X, b.Y - 10, d.X + 5, d.Y + 5, 20 + b.siz + d.siz):
                             d.special(b)
                             if d.dmg > b.armr:
                                 b.hploss(d.dmg - b.armr)
@@ -1865,7 +1950,7 @@ while running:
                                 rel = 0
                 elif d in drts2:
                     if b not in murder:
-                        if distanceB(b.X + b.T, b.Y + b.R, d.X, d.Y, 25 + b.siz):
+                        if distanceB(b.X, b.Y + b.R, d.X, d.Y, 25 + b.siz):
                             d.H -= 1
                             if b.armr < d.dmg:
                                 b.hploss(d.dmg - b.armr)
@@ -1874,7 +1959,7 @@ while running:
                                     xplosions.append(explode(d.x, d.y, d.P[2], d.P[0]))
                                     for c in bloons:
                                         if c.armr < d.P[1]:
-                                            if distanceB(c.X + c.T, c.Y + c.R, d.X + 5, d.Y + 50, 100+d.P[0] + c.siz):
+                                            if distanceB(c.X, c.Y, d.X + 5, d.Y + 50, 100+d.P[0] + c.siz):
                                                 c.hploss(d.P[1] - c.armr)
                                 if d in blns:
                                     blns.remove(d)
@@ -1918,12 +2003,12 @@ while running:
     for b in druids:
         if (ti - b.C) > b.c:
             for e in bloons:
-                if distanceB(e.X + e.T, e.Y + e.R, b.X + 67, b.Y + 60, 250 + e.siz):
+                if distanceB(e.X, e.Y, b.X + 67, b.Y + 60, 250 + e.siz):
                     pliesX = 15
                     pliesY = 20
                     b.C = ti
-                    xS = (e.X + e.T) - (b.X + pliesX)
-                    yS = (e.Y + e.R) - (b.Y + pliesY)
+                    xS = (e.X) - (b.X + pliesX)
+                    yS = (e.Y) - (b.Y + pliesY)
                     if xS == 0:
                         spdx = b.DS
                         spdy = 0
@@ -1943,7 +2028,7 @@ while running:
         if (ti - b.C) > b.c:
             rel = 0
             for e in bloons:
-                if distanceB(e.X + e.T, e.Y + e.R, b.X + 67, b.Y + 60, b.rang + e.siz):
+                if distanceB(e.X, e.Y, b.X + 67, b.Y + 60, b.rang + e.siz):
                     if b.LS == -10:
                         pliesX = 10
                         pliesY = 70
@@ -1959,8 +2044,8 @@ while running:
                             b.rot *= -1
                             b.I = TL[b.rot - 1]
                     b.C = ti
-                    xS = (e.X + e.T) - (b.X + pliesX)
-                    yS = (e.Y + e.R) - (b.Y + pliesY)
+                    xS = (e.X) - (b.X + pliesX)
+                    yS = (e.Y) - (b.Y + pliesY)
                     if xS == 0:
                         spdx = b.DS
                         spdy = 0
@@ -2051,8 +2136,8 @@ while running:
                 pass
             elif (ti - b.C) == int(b.c / 2):
                 for e in bloons:
-                    xS = (e.X + e.T) - (b.X + 10)
-                    yS = (e.Y + e.R) - (b.Y + 60)
+                    xS = (e.X) - (b.X + 10)
+                    yS = (e.Y) - (b.Y + 60)
                     if xS == 0:
                         spdx = b.DS
                         spdy = 0
@@ -2065,12 +2150,14 @@ while running:
                     drts.append(Drt(b.X + 10, b.Y + 60, spdx, spdy, loadify('spanner'), 10, 0, 0, [0, 0], b.SPE))
                     break
 
-    screen.blit(back, (0, 0))
+    screen.blit(btdmap, (0, 0))
+    for e in images:
+        screen.blit(e.I, (e.x, e.y))
     for b in leafs:
         rel = 0
         for e in bloons:
             if e.ID>-10:
-                if distanceB(e.X + e.T, e.Y + e.R, b.X + 67, b.Y + 60, b.rang + e.siz):
+                if distanceB(e.X, e.Y, b.X + 67, b.Y + 60, b.rang + e.siz):
                     if b.LS == -10:
                         pliesX = 10
                         pliesY = 70
@@ -2085,8 +2172,8 @@ while running:
                         elif b.rot < 0:
                             b.rot *= -1
                             b.I = TL[b.rot - 1]
-                    xS = (e.X + e.T) - (b.X + pliesX)
-                    yS = (e.Y + e.R) - (b.Y + pliesY)
+                    xS = (e.X) - (b.X + pliesX)
+                    yS = (e.Y) - (b.Y + pliesY)
                     if xS == 0:
                         spdx = b.DS
                         spdy = 0
@@ -2139,8 +2226,6 @@ while running:
             screen.blit(lock, (w, int((118 * (v - 1) + scroll + 13))))
         else:
             break
-    for e in images:
-        screen.blit(e.I, (x, y))
     screen.blit(bloonamount, (w, h - 200))
     bwee = finter.render(str(bloonumba), True, (0, 0, 0))
     screen.blit(bwee, (w + 60, h - 150))
@@ -2165,8 +2250,8 @@ while running:
             bloons.append(e)
             e.lists.append(bloons)
             bloondelay.remove(e)
-            e.X=120
-            e.x = 120
+            e.X=blntrac[0]
+            e.x =blntrac[0]
         else:
             break
     ti += 1
