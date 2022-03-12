@@ -494,7 +494,7 @@ class Bloon(pygame.sprite.Sprite):
             self.img = boss2
         self.X = X
         self.Y = Y
-        self.f = f
+        self.f = [e for e in f]
         ss = pygame.Surface.get_size(self.I)
         self.s = pygame.Surface.get_size(self.I)
         self.siz = (ss[0] + ss[1]) / 4
@@ -1650,7 +1650,6 @@ def mapspecial2():
                 int(distanceC(blntrac[len(blntrac) - 2], blntrac[len(blntrac) - 1], blntrac[len(blntrac) - 4],
                               blntrac[len(blntrac) - 3])), 140))
 
-            print(spdx, spdy)
             if spdx == 0:
                 if spdy < 0:
                     newpath = pygame.transform.rotate(newpathh, -90)
@@ -1659,7 +1658,6 @@ def mapspecial2():
                 extray = 1
             elif spdx > 0:
                 newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
-                print(10)
             else:
                 newpath = pygame.transform.rotate(newpathh, 180 - math.atan(spdy / spdx) * 180 / math.pi)
 
@@ -1683,7 +1681,6 @@ def mapspecial2():
                 yimg = blntrac[len(blntrac) - 1]
             else:
                 yimg = blntrac[len(blntrac) - 3]
-            print(extray, extrax)
             images.append(Image(newpath, ximg - extrax, yimg - extray))
 
 
@@ -1704,7 +1701,6 @@ def mapspecial2():
         int(distanceC(blntrac[len(blntrac) - 2], blntrac[len(blntrac) - 1], blntrac[len(blntrac) - 4],
                       blntrac[len(blntrac) - 3])), 140))
 
-    print(spdx, spdy)
     if spdx == 0:
         if spdy < 0:
             newpath = pygame.transform.rotate(newpathh, -90)
@@ -1713,7 +1709,6 @@ def mapspecial2():
         extray = 1
     elif spdx > 0:
         newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
-        print(10)
     else:
         newpath = pygame.transform.rotate(newpathh, 180 - math.atan(spdy / spdx) * 180 / math.pi)
 
@@ -1737,7 +1732,6 @@ def mapspecial2():
         yimg = blntrac[len(blntrac) - 1]
     else:
         yimg = blntrac[len(blntrac) - 3]
-    print(extray, extrax)
     images.append(Image(newpath , ximg- extrax, yimg - extray))
 
     for b in range(len(blntrac)//2):
