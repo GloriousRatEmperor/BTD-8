@@ -777,7 +777,6 @@ def blnM():
         if e not in murder:
             if e.SY == 0:
                 e.IM = 0
-                e.SY = 0
                 e.SX = 0
                 xS = e.n[e.f - 1] - e.X
                 yS = e.n[e.f] - e.Y
@@ -858,7 +857,7 @@ def blnM():
                         del e
                 else:
                     e.f += 2
-                    if e.f > len(blntrac)-1:
+                    if e.f > len(e.n)-1:
                         health -= e.H
                         murder.append(e)
                         e.lists.append(murder)
