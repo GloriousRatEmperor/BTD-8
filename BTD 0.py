@@ -562,7 +562,7 @@ class Bloon(pygame.sprite.Sprite):
                            [16, rn + 65, 0, -11, [[4, 9]]],
                            [3, rn * 3 + 120, 0, -10, [[4, 11]]]]
         what = bloonlistdingus[which]
-        if int(what[2] + overkill) > 0:
+        if int(what[1] + overkill) > 0:
             if what[3] > -10:
                 what[0] += min(rn, 60) / 5
             # what = [speed,health,HH(wierdhelf),ID,spawn,EX,EY]
@@ -685,10 +685,11 @@ class Killcrock(pygame.sprite.Sprite):
     def activate(self):
         global leafs
         for e in leafs:
-            if e.COOL==self.X-250:
-                e.c*=2
-                e.Q-=20
-                break
+            if e.f>1:
+                if e.COOL==self.X-250:
+                    e.c*=2
+                    e.Q-=20
+                    break
         bloondelay.remove(self)
 druids = []
 
