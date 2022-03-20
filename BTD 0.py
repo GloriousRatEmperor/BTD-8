@@ -120,10 +120,6 @@ class drtmonkey(pygame.sprite.Sprite):
                 self.rot = 7
             else:
                 self.rot = F * 2 + 1
-            # if F>0:
-            # self.Q=0.5
-            # else:
-            # self.Q=1
         self.rang=range
         self.Q = 1
         self.MID = 1
@@ -151,6 +147,7 @@ class leafblower(drtmonkey):
         super().__init__( X, Y, I, f, F, DS, H, c, ID, LS, P, SPE)
         self.MID = 6
         self.i=I
+        self.U=1
         self.rang=range
         drtmunks.remove(self)
         self.price = 10
@@ -229,6 +226,11 @@ class Image(pygame.sprite.Sprite):
         self.I = I
         self.x = X
         self.y = Y
+
+class tempimage(Image):
+    def __init__(self, I, X, Y,t):
+        super().__init__(I,X,Y)
+        self.t=t
 
 
 class engin(pygame.sprite.Sprite):
@@ -314,6 +316,12 @@ class Drt(pygame.sprite.Sprite):
                         loss.SX /= self.SPE[c * 2 - 1] + 1
                         loss.SY /= self.SPE[c * 2 - 1] + 1
                         loss.IM = 1
+            elif self.SPE[c * 2 - 2] == 2:
+                if loss not in burning:
+                    burning.append(loss)
+                    loss.lists.append(burning)
+                    loss.firetick = [0, self.SPE[c * 2 - 1][0]]
+                    loss.firedmg = self.SPE[c * 2 - 1][1]
 
     def xplod(d):
         xplosions.append(explode(d.x+d.V, d.y+d.C, d.P[2], d.P[0]))
@@ -544,6 +552,7 @@ class Bloon(pygame.sprite.Sprite):
                 #     self.I = self.i[self.H-1]
 
     def make(self, which, overkill):
+        global bloons
         bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []],
                            [10, 5, 5, 1, []],
                            [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]],
@@ -553,7 +562,6 @@ class Bloon(pygame.sprite.Sprite):
                            [16, rn + 65, 0, -11, [[4, 9]]],
                            [3, rn * 3 + 120, 0, -10, [[4, 11]]]]
         what = bloonlistdingus[which]
-
         if int(what[2] + overkill) > 0:
             if what[3] > -10:
                 what[0] += min(rn, 60) / 5
@@ -659,7 +667,29 @@ class explode(pygame.sprite.Sprite):
         self.I = loadify('noth')
         self.t = 0
 
+class delaybloon(Bloon):
+    def __init__(self, X, Y, S, H, f, r, ID, h, HH, spawn=[], armr=0, EY=0, sent=0,deathrattle=0):
+        super().__init__(X, Y, S, H, f, r, ID, h, HH, spawn, armr, EY, sent,deathrattle)
+    def activate(self):
+        global bloons,bloondelay
+        bloons.append(self)
+        self.lists.append(bloons)
+        self.X = blntrac[0]
+        self.x = blntrac[0]
+        bloondelay.remove(self)
 
+
+class Killcrock(pygame.sprite.Sprite):
+    def __init__(self, X):
+        self.X = X
+    def activate(self):
+        global leafs
+        for e in leafs:
+            if e.COOL==self.X-250:
+                e.c*=2
+                e.Q-=20
+                break
+        bloondelay.remove(self)
 druids = []
 
 
@@ -930,7 +960,7 @@ def sendbloon(stuff):
         else:
             regrow=stuff[2]
         for e in range(stuff[0]):
-            bloondelay.append(Bloon(e * spc+ti, blntrac[1], (what[0]) / 5
+            bloondelay.append(delaybloon(e * spc+ti, blntrac[1], (what[0]) / 5
                                 , what[1], 1
                                 , regrow, what[3], what[2], what[2], what[4], armour, 0, sent,deathrattle))
         bloondelay=sorted(bloondelay,key=arrivetime)
@@ -978,7 +1008,8 @@ def ready():
 
 cl = 1
 blow=loadify('leafblowah')
-
+nailmonk=[loadify('blownail'),loadify('crowdnail'),loadify('blowfire')]
+firethrow=loadify('fire')
 def upgrade():
     global cl, price, lvlup, drtmonks, money, druids,blow
     cl = 1
@@ -1015,7 +1046,7 @@ def upgrade():
                                     for e in lvlup:
                                         e.F = 2
                                         money -= 100
-                                        e.Q = 0.5
+                                        e.Q = 2
                                         cl = 0
                             elif e.F == 2 and e.f < 3:
                                 if money > 109:
@@ -1048,7 +1079,7 @@ def upgrade():
                                             e.I = loadify('engineer2')
                                             e.MI = loadify('turret2b')
                                         money -= 50
-                                        e.Q = 0.5
+                                        e.Q = 2
                                         cl = 0
                             elif e.F == 1:
                                 if money > 169:
@@ -1145,7 +1176,7 @@ def upgrade():
                             if e.F == 0:
                                 if money > 59:
                                     for e in lvlup:
-                                        e.Q = 0.2
+                                        e.U = 5
                                         e.power=1
                                         e.blow*=1.5
                                         money -= 60
@@ -1309,14 +1340,37 @@ def upgrade():
                                         e.f = 1
                                         money -= 50
                                         drtmonks.append(e)
-                                        e.c=((e.rang)**2)/470
+                                        e.i=nailmonk[0]
+                                        e.I = nailmonk[0]
+                                        e.c=12*(e.rang**2)/25000
                                         e.price+=40
-                                        if e.F == 0:
-                                            e.I = loadify('druid02')
-                                        elif e.F == 1:
-                                            e.I = loadify('druid3')
-                                        elif e.f == 1:
-                                            e.I = loadify('druid6')
+                                        cl = 0
+                            elif e.f == 1:
+                                if money > 399:
+                                    for e in lvlup:
+                                        e.f = 2
+                                        money -= 400
+                                        e.Q+=3
+                                        e.i = nailmonk[1]
+                                        e.I = nailmonk[1]
+                                        e.dmg=2
+                                        e.COOL=-10000
+                                        e.price+=300
+                                        cl = 0
+                            elif e.f == 2:
+                                if money > 2499:
+                                    for e in lvlup:
+                                        e.f = 3
+                                        money -= 2500
+                                        e.c/=3
+                                        e.Q=1
+                                        e.SPE=[2,[300,5]]
+                                        e.i = nailmonk[2]
+                                        e.I = nailmonk[2]
+                                        e.ID=firethrow
+                                        e.dmg=3
+                                        e.H+=6
+                                        e.price+=1900
                                         cl = 0
                     else:
                         for e in lvlup:
@@ -1432,6 +1486,12 @@ def menuAB(MT, UPGNUM, PGNUM):
     if MT == 6:
         if PGNUM == 0:
             screen.blit(loadify('nailing'), (1100, 450))
+        if PGNUM == 1:
+            screen.blit(loadify('crowdmelter'), (1100, 450))
+        if PGNUM == 2:
+            screen.blit(loadify('firehell'), (1100, 450))
+
+
 branch = loadify("thorns")
 thorned = []
 burning = []
@@ -1449,7 +1509,7 @@ def bloon():
             c.hploss(c.firedmg + c.armr)
         screen.blit(
             pygame.transform.scale(fire[int(c.firetick[0] / c.firetick[1] * (len(fire) - 1))], (c.s[0], c.s[1])),
-            (c.x, c.y))
+            (c.x- c.EX-c.T, c.y - c.EY-c.R))
 
 
 def drtmonk():
@@ -1587,7 +1647,6 @@ tracX = [110, 160, 210, 260, 310, 360, 376, 411, 461, 511, 561, 611, 661, 711, 7
          1392, 1342, 1292, 1242, 1192, 1142, 1092, 1042, 1009, 1007, 1005, 1003, 1001, 984, 934, 884, 839, 836, 833,
          825, 775, 725, 675, 625, 575, 525, 475, 425, 375, 368, 368, 367, 366, 365, 364, 363, 362, 361, 360, -36, -84,
          -133]
-print(moar[0][0])
 for e in tracY:
     e *= moar[0][1] / moar[1][1]
 for e in tracX:
@@ -1622,7 +1681,7 @@ chosen=0
 yard=pygame.transform.smoothscale(loadify("backyard"), (w, h))
 maps=[back,yard]
 stopper=loadify("pathstopper")
-blntrac2=[215, 434, 1455, 700]
+blntrac2=[215, 434,1454, 430]
 def mapspecial1():
     pass
 blunpath=loadify("path")
@@ -1655,22 +1714,16 @@ def mapspecial2():
                     newpath = pygame.transform.rotate(newpathh, -90)
                 else:
                     newpath = pygame.transform.rotate(newpathh, 90)
-                extray = 1
+                extray = 70
             elif spdx > 0:
                 newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
             else:
                 newpath = pygame.transform.rotate(newpathh, 180 - math.atan(spdy / spdx) * 180 / math.pi)
 
-            if spdx > 0 and spdy > 0:
+            if spdx*spdy > 0:
                 extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
                 extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
-            elif spdx > 0 and spdy < 0:
-                extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
-                extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
-            elif spdx < 0 and spdy < 0:
-                extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
-                extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
-            else:
+            elif spdx*spdy < 0:
                 extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
                 extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
             if xS < 0:
@@ -1706,22 +1759,16 @@ def mapspecial2():
             newpath = pygame.transform.rotate(newpathh, -90)
         else:
             newpath = pygame.transform.rotate(newpathh, 90)
-        extray = 1
+        extray = 70
     elif spdx > 0:
         newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
     else:
         newpath = pygame.transform.rotate(newpathh, 180 - math.atan(spdy / spdx) * 180 / math.pi)
 
-    if spdx>0 and spdy>0:
+    if spdx * spdy > 0:
         extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
         extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
-    elif spdx>0 and spdy<0:
-        extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
-        extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
-    elif spdx < 0 and spdy < 0:
-        extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
-        extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
-    else:
+    elif spdx * spdy < 0:
         extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
         extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
     if xS < 0:
@@ -1732,10 +1779,7 @@ def mapspecial2():
         yimg = blntrac[len(blntrac) - 1]
     else:
         yimg = blntrac[len(blntrac) - 3]
-    images.append(Image(newpath , ximg- extrax, yimg - extray))
-
-    for b in range(len(blntrac)//2):
-        images.append(Image(stopper, blntrac[b*2-2]-70, blntrac[b*2-1]-70))
+    images.append(Image(newpath, ximg - extrax, yimg - extray))
 
 
 mapspecials=[mapspecial1,mapspecial2]
@@ -1764,6 +1808,8 @@ while chosen==0:
 yoggstoth=Bloon(50, 150, 1, 1, 1, 0, 1, 1, 0)
 yoggstoth.lists.append(bloons)
 bloons.append(yoggstoth)
+tempimages=[]
+boost=loadify('boost')
 while running:
     XX = pygame.mouse.get_pos()
     for event in pygame.event.get():
@@ -1831,9 +1877,9 @@ while running:
                         if money > 14:
                             money -= 15
                             leafs.append(leafblower(XX[0], XX[1], loadify('leafblower')
-                                                      , 0, 0, 10 + random.randint(-9, 10), 1  # 10+random.randint(-9,10)
-                                                      , 200 + random.randint(-120, 120), loadify('drtn'), -10, [0, 0],
-                                                      [0, 0],random.randint(50, 250)/1000,random.randint(110, 500) ) )
+                                                      , 0, 0, 10 + random.randint(-5, 15), 1  # 10+random.randint(-9,10)
+                                                      , 200 + random.randint(-120, 120), loadify('nail2'), -10, [0, 0],
+                                                      [0, 0],random.randint(50, 250)/1000,random.randint(150, 550) ) )
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             XX = pygame.mouse.get_pos()
@@ -1882,6 +1928,19 @@ while running:
                             drts.append(
                                 mine(b.X + 10, b.Y + 60, spdx, spdy, 150 + rn, 0, 0, [1000, 10, 0], XX, [0, 0], 3))
                             break
+
+            if event.key == pygame.K_h:
+                for e in leafs:
+                    if e.f>1:
+                        if ti-e.COOL>1500:
+                            e.Q+=20
+                            e.c/=2
+                            bloondelay.append(Killcrock(ti+250))
+                            e.COOL=ti
+                            tempimages.append(tempimage(boost,e.X-80, e.Y-80,ti+250))
+                            break
+
+
 
             if event.key == pygame.K_LEFT:
                 if select > 0:
@@ -2022,7 +2081,7 @@ while running:
         if (ti - b.C) > b.c:
             rel = 0
             for e in bloons:
-                if distanceB(e.X, e.Y, b.X + 67, b.Y + 60, b.rang + e.siz):
+                if distanceB(e.X, e.Y, b.X, b.Y, b.rang + e.siz):
                     if b.LS == -10:
                         pliesX = 10
                         pliesY = 70
@@ -2056,8 +2115,8 @@ while running:
                             drts.append(
                                 Drt(b.X + pliesX - spdx, b.Y + pliesY - spdy, spdx, spdy, b.ID, b.H, 0, 0, b.P, b.SPE,
                                     b.dmg, 0, [e for e in b.SPX]))
-                    rel += b.Q
-                    if rel == 1:
+                    rel += 1
+                    if rel == b.Q:
                         break
     for b in gunners:
         if (ti - b.C) > b.c:
@@ -2147,11 +2206,15 @@ while running:
     screen.blit(btdmap, (0, 0))
     for e in images:
         screen.blit(e.I, (e.x, e.y))
+    for e in tempimages:
+        screen.blit(e.I, (e.x, e.y))
+        if e.t<ti:
+            tempimages.remove(e)
     for b in leafs:
         rel = 0
         for e in bloons:
             if e.ID>-10:
-                if distanceB(e.X, e.Y, b.X + 67, b.Y + 60, b.rang + e.siz):
+                if distanceB(e.X, e.Y, b.X, b.Y, b.rang + e.siz):
                     if b.LS == -10:
                         pliesX = 10
                         pliesY = 70
@@ -2188,8 +2251,8 @@ while running:
                         if b.power>=1:
                             e.hploss(b.power)
                     e.SY=0
-                    rel += b.Q
-                    if rel==b.Q:
+                    rel += 1
+                    if rel==1:
                         if spdx == 0:
                             if spdy < 0:
                                 b.I = pygame.transform.rotate(b.i, 0)
@@ -2200,7 +2263,7 @@ while running:
                         else:
                             b.I = pygame.transform.rotate(b.i, 180 - math.atan(spdy / spdx) * 180 / math.pi + 90)
                         b.ss = pygame.Surface.get_size(b.I)
-                    if rel == 1:
+                    if rel == b.U:
                         break
     blnM()
 
@@ -2241,11 +2304,7 @@ while running:
     pygame.display.update()
     for e in bloondelay:
         if e.X<ti:
-            bloons.append(e)
-            e.lists.append(bloons)
-            bloondelay.remove(e)
-            e.X=blntrac[0]
-            e.x =blntrac[0]
+            e.activate()
         else:
             break
     ti += 1
