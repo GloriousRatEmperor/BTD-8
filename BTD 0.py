@@ -1687,7 +1687,7 @@ def mapspecial1():
 blunpath=loadify("path")
 
 def mapspecial2():
-    global blntrac,images
+    global blntrac,images,extrax
     images=[]
     blntrac=[blntrac[0],blntrac[1]]
     for e in range(min(len(monks),6)):
