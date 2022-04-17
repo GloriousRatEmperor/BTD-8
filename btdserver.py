@@ -29,7 +29,7 @@ class player_channel(Channel):
 
     def Network_start(self,data):
         global players
-        if len(players)<2:
+        if len(players)<3 and mapchosen==0:
             newplayer = player()
             players.append(newplayer)
             self.Send({"action": "gitplayer", "id": len(players)})
@@ -43,19 +43,17 @@ class player_channel(Channel):
 
     def Network_mapchoose(self, data):
         global mapchosen
-        if len(players)==2 and mapchosen==0:
+        if len(players)>1 and mapchosen==0:
             mapchosen=1
-            print(12)
             for channel in self.server.all_channels:
-                print(25)
                 channel.Send({"action": "mapchosen", "info": data["what"]})
         else:
-            print([len(players)==2, mapchosen])
+            print([len(players), mapchosen])
 
     def Network_ready(self,data):
         global nextround
         nextround+=1
-        if nextround==2:
+        if nextround==len(players):
             rnd(0)
 class cw_server(Server):
     channelClass = player_channel
@@ -65,17 +63,7 @@ class cw_server(Server):
         self.all_channels=[]
 
     def Connected(self, channel, addr):
-        if len(self.all_channels)==2:
-            channel.Send({"action": "gitplayer", "id": 10})
-        else:
-            self.all_channels.append(channel)
-
-    def join(self, channel):
-        pass
-
-    def leave(self, channel):
-        pass
-
+        self.all_channels.append(channel)
     def tick(self, dt=0):
         self.Pump()
 
@@ -144,7 +132,7 @@ f=1
 updates=[]
 rn=5
 roundsize=0
-blnpower=[1,1.8,2.5,3.3,4,7,13,11,11,15,20,30,40]
+blnpower=[1,1.8,2.5,3.3,4,7,13,11,11,15,17,17,30,40,15,30]
 def rnd(b):
     global rn,players,nextround,ch,blnpower,roundsize
     if b==0:
@@ -153,9 +141,11 @@ def rnd(b):
         rn+=1
     ch = 5
     regrow = random.choice([0, 1])
-    if rn > 60:
-        ch = random.randint(9, 13)
-        if ch == 13:
+    if rn > 50:
+        ch = random.randint(10, 15)
+        if ch > 12:
+            if ch==15:
+                ch+=1
             regrow = 0
         else:
             ch=5
@@ -164,83 +154,27 @@ def rnd(b):
 
     if ch == 5:
         if rn > 40:
-            ch = random.randint(1, 12)
-            if ch==12:
+            ch = random.randint(6, 14)
+            if ch>12:
                 regrow=0
-        if rn > 30:
-            ch = random.randint(1, 11)
+                if ch==14:
+                    ch+=2
+        elif rn > 30:
+            ch = random.randint(2, 11)
         elif rn > 20:
-            print(3)
             ch = random.randint(1, 9)
         elif rn > 15:
-            print(2)
             ch = random.randint(1, 6)
         else:
-            print(1)
             ch = random.randint(1, 3)
             #[howmany, which, regrow (random.randint(50,350) is standard)]
     for channel in srvr.all_channels:
-        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 5 + 1+b)),50+b)
+        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 5 + 1+b)),70)
         channel.Send({"action": "ugotbloonsmon", "takedis": [sendamount, ch-1, regrow, roundsize/sendamount]})
     if random.randint(int(rn / 3), rn) > 10 + b * 2:
         rnd(b + 1)
 
-#
-# @app.route('/anynew', methods = ['POST'])
-# def Anynew():
-#     update = jsonpickle.decode(request.get_data())
-#     for e in players:
-#         if e.ID==update:
-#             wheiz=e.updates
-#             e.updates = []
-#             return jsonpickle.encode(wheiz)
-#
-# @app.route('/start')
-# def start():
-#     global players
-#     if len(players)<2:
-#         newplayer = player()
-#         players.append(newplayer)
-#         return jsonpickle.encode(newplayer)
-#     else:
-#         print(players)
-#         return jsonpickle.encode("There are already 2 players")
-# @app.route('/sendbloon', methods = ['POST'])
-# def sendbloons():
-#     global players
-#     update = jsonpickle.decode(request.get_data())
-#     for e in players:
-#         if not e.ID==update[0]:
-#             e.updates.append([0,update[1]])
-#     return jsonpickle.encode("ayay sir")
-# @app.route('/sendready', methods = ['POST'])
-# def sendstuff():
-#     global nextround
-#     nextround+=1
-#     if nextround==2:
-#         rnd(0)
-#     return jsonpickle.encode("ayay sir")
-#
-# @app.route('/MyUpdates', methods = ['POST'])
-# def giveupdate():
-#     global players
-#     update = jsonpickle.decode(request.get_data())
-#     for e in players:
-#         if e.ID==update:
-#             dododoo=[e.ID]
-#             return jsonpickle.encode(dododoo)
-#     print('clientnotfounderror')
-#     return jsonpickle.encode([])
-#
-# @app.route('/players', methods = ['GET'])
-# def playerget():
-#     global players
-#     return jsonpickle.encode(players)
-#
-# @app.route('/mobbos')
-# def mobboser():
-#     global moobs
-#     return jsonpickle.encode(moobs)
+
 
 with open("ip.txt") as ip:
     srvr = cw_server(localaddr=(ip.read(), 5071))

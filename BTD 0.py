@@ -3,7 +3,6 @@ import numpy as np
 import random
 import pygame
 import math
-import os
 import time
 from pyglet.window import key
 from pyglet.window import Window
@@ -23,9 +22,10 @@ class MyNetworkListener(ConnectionListener):
 
     def Network_gitplayer(self, data):
         global me
-        if data["id"] < 3:
+        if data["id"] < 4:
             me = player(data["id"])
         else:
+            print(data["id"])
             uu = 1 / 0
 
     def Network_ugotbloonsmon(self, data):
@@ -43,6 +43,8 @@ class MyNetworkListener(ConnectionListener):
 nwl = MyNetworkListener()
 
 pygame.init()
+pygame.mixer.init()
+popping=pygame.mixer.Sound("bap.ogg")
 
 
 class player(object):
@@ -124,9 +126,9 @@ class drtmonkey(pygame.sprite.Sprite):
         self.Q = 1
         self.MID = 1
         self.LS = LS
-        self.dmg = dmg
+        self.dmg = 1.4
         self.ID = ID
-        self.H = H
+        self.H = 1.2
         self.c = c
         self.DS = DS
 
@@ -162,7 +164,7 @@ class gunner(pygame.sprite.Sprite):
         super(gunner, self).__init__()
         monks.append(self)
         self.c = c
-        self.dmg = 1
+        self.dmg = 2
         self.MID = 4
         self.price = 225
         self.H = H
@@ -182,31 +184,41 @@ class gunner(pygame.sprite.Sprite):
         self.EX = 0
         self.EY = 0
 
+def calc(a1, b1, a2, b2, x, y, r):
+    # [a1,b1] = start of line
+    # [a2, b2] = end of line
+    # [x, y] = centre of circle
+    # r = radius of circle
+    t1 = a1 - x
+    t2 = a2 - a1
+    t3 = b1 - y
+    t4 = b2 - b1
+    c = t1 * t1 + t3 * t3 - r * r
+    b = 2 * t1 * t2 + 2 * t3 * t4
+    a = t2 * t2 + t4 * t4
+    D = b * b - 4 * a * c
+    if D < 0:
+        return None
+    sqrtd = math.sqrt(D)
+    k1 = (-b + sqrtd) / (2 * a)
+    k2 = (-b - sqrtd) / (2 * a)
+    k1 = max(min(1, k1), 0)
+    k2 = max(min(1, k2), 0)
+    return [[a1 + k1 * (a2 - a1), b1 + k1 * (b2 - b1)], [a1 + k2 * (a2 - a1), b1 + k2 * (b2 - b1)]]
 
 class factory(pygame.sprite.Sprite):
-    def __init__(self, X, Y, I, f, F, H, c, ID, LS, P):
+    def __init__(self, X, Y, I, f, F, H, c, ID, LS, P,rang):
         self.spikeX = []
         self.spikeY = []
         self.X = X
         self.Y = Y
         self.XX = X
         self.YY = Y
+        self.rang=rang
         self.price = 90
         self.SPE = [0, 0]
         super(factory, self).__init__()
         monks.append(self)
-        for i in range(len(tracX)):
-            if distanceB(tracX[i], tracY[i], self.X + 60, self.Y + 60, 200):
-                self.spikeX.append(tracX[i])
-                self.spikeY.append(tracY[i])
-        gobl = 10000
-        for i in range(int((len(blntrac)) / 2)):
-            if i > 0:
-                if distanceC(blntrac[i * 2 - 2], blntrac[i * 2 - 1], self.X + 60, self.Y + 60) < gobl:
-                    numba = i * 2 - 1
-                    gobl = distanceC(blntrac[i * 2 - 2], blntrac[i * 2 - 1], self.X + 60, self.Y + 60)
-        self.tracpos = numba
-
         self.MID = 3
         self.ID = ID
         self.H = H
@@ -219,7 +231,36 @@ class factory(pygame.sprite.Sprite):
         self.f = f
         self.F = F
         self.P = P
+        self.ss=pygame.Surface.get_size(self.I)
+    def boot(s):
+        global blntrac,images
+        s.track=[]
+        for i in range(len(blntrac)//2-1):
+            segments=calc(blntrac[i * 2 ], blntrac[i * 2 +1], blntrac[i * 2+2], blntrac[i * 2 +3],s.X+s.ss[0]//2,s.Y+s.ss[1]//2,s.rang)
+            if not segments == None:
+                if not segments[0]==segments[1]:
+                    s.track.append([segments,i*2+1])
 
+        #distanceC(blntrac[i * 2 - 2], blntrac[i * 2 - 1], blntrac[i * 2], blntrac[i * 2 + 1])
+
+class inheritor(pygame.sprite.Sprite):
+    def __init__(self, whichattribute, amount, howmanyturns):
+        self.whi=whichattribute
+        self.A=amount
+        self.T=howmanyturns
+        self.lists=[]
+    def boost(s,e):
+        global factories
+        if s.whi==1:
+            e.Dmg+=1.5*s.A
+        elif s.whi==2:
+            e.H += 1.5 * s.A
+        else:
+            e.c /= s.A
+        s.T-=1
+        if s.T<1:
+            for g in s.lists:
+                g.remove(s)
 
 class Image(pygame.sprite.Sprite):
     def __init__(self, I, X, Y):
@@ -441,7 +482,7 @@ yeano = 1
 rndbloon = []
 cart=loadify('blooncart')
 lightning=loadify('lightining')
-
+balloon=[loadify('bigblue'),loadify('balloon')]
 class Bloon(pygame.sprite.Sprite):
     def __init__(self, X, Y, S, H, f, r, ID, h, HH, spawn=[], armr=0, EY=0, sent=0,deathrattle=0):
         super(Bloon, self).__init__()
@@ -490,16 +531,20 @@ class Bloon(pygame.sprite.Sprite):
             self.I = self.i[self.H - 1]
         elif self.ID == -1:
             self.I = spe[0]
-        elif self.ID == -10:
+        elif self.ID == -100:
             self.I = bossI
             self.img = bossI
         elif -1 > self.ID > -7:
             self.I = A[-self.ID + 3]
         elif self.ID == -9:
             self.I = cart
-        elif self.ID == -11:
+        elif self.ID == -101:
             self.I = boss2
             self.img = boss2
+        elif self.ID == -16:
+            self.I = balloon[0]
+        elif self.ID == -17:
+            self.I = balloon[1]
         self.X = X
         self.Y = Y
         self.f = f
@@ -517,7 +562,7 @@ class Bloon(pygame.sprite.Sprite):
         self.q = self.I
 
     def hploss(self, loss):
-        global hploss, money, rel, POWER, power
+        global hploss, money, rel, POWER, power,murder
         if self not in murder:
             if self.ID == 1:
                 self.H -= int(loss)
@@ -535,7 +580,7 @@ class Bloon(pygame.sprite.Sprite):
                     self.I = self.i[self.H - 1]
             else:
                 self.H -= loss
-                if self.H < 1:
+                if self.H <= 0:
                     if not self.spawn == []:
                         for c in self.spawn:
                             for e in range(c[0]):
@@ -553,18 +598,11 @@ class Bloon(pygame.sprite.Sprite):
 
     def make(self, which, overkill):
         global bloons
-        bloonlistdingus = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []],
-                           [10, 5, 5, 1, []],
-                           [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]],
-                           [10, 5, 8, -4, [[1, 5], [4, 2]]],
-                           [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
-                           [10, 20, 9, -5, [[5, 5]]], [7, int(20 + rn / 12), 10, -6, [[4, 5]], 1],
-                           [16, rn + 65, 0, -11, [[4, 9]]],
-                           [3, rn * 3 + 120, 0, -10, [[4, 11]]]]
-        what = bloonlistdingus[which]
-        if int(what[1] + overkill) > 0:
+        bloonlist()
+        what = bloonlistcomplete[which]
+        if int(what[2] + overkill) > 0:
             if what[3] > -10:
-                what[0] += min(rn, 60) / 5
+                what[0] += min(rn, 60) / 10
             # what = [speed,health,HH(wierdhelf),ID,spawn,EX,EY]
 
             if len(what) > 5:
@@ -583,7 +621,6 @@ class Bloon(pygame.sprite.Sprite):
                 newbloon.firedmg = self.firedmg
             if overkill < 0:
                 newbloon.hploss(-overkill)
-
     def die(e):
         global lightning
         for b in range(len(e.ondeath)):
@@ -598,13 +635,12 @@ class Bloon(pygame.sprite.Sprite):
             g.remove(e)
 
     def grow(e, howmuch=1):
+        global forms
         if e not in murder:
             if e.HH < e.h:
                 e.HH += min(howmuch, e.h - e.HH)
                 if e.HH > 5 and not e.ID == -1:
-                    forms = [[0, 1, -2, [[2, 4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
-                             [10, 20, -5, [[5, 5]]], [7, int(20 + rn / 12), -6, [[4, 5]], 1]]
-
+                    bloonlist()
                     if e.HH > 6:
                         e.HH = e.h
                     form = forms[e.HH - 6]
@@ -672,10 +708,10 @@ class delaybloon(Bloon):
         super().__init__(X, Y, S, H, f, r, ID, h, HH, spawn, armr, EY, sent,deathrattle)
     def activate(self):
         global bloons,bloondelay
-        bloons.append(self)
-        self.lists.append(bloons)
         self.X = blntrac[0]
         self.x = blntrac[0]
+        bloons.append(self)
+        self.lists.append(bloons)
         bloondelay.remove(self)
 
 
@@ -692,7 +728,22 @@ class Killcrock(pygame.sprite.Sprite):
                     break
         bloondelay.remove(self)
 druids = []
-
+def bloonlist():
+    global rn,bloonlistcomplete,forms
+    #speed,hp,HH,id,spawn,armor,deathrattle
+    #HH--for-regrow-it-wierd (also determines if it gets overkilled so much it should spawn units, so unit hp+unit is spawns hp)
+    bloonlistcomplete = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
+                         [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
+                         [15, int(6 + rn / 10), int(6 + rn / 10), -1, []],
+                         [7, int(25 + rn // 12), 0, -9, [], 0.4, [[[int(25 + rn // 12) / 3, 50], 0]]],
+                         [10, 20 + rn / 6, 9, -5, [[5, 5]]],
+                         [7, int(20 + rn / 12), 10, -6, [[4, 5]], 1],
+                         [16, rn + 50, rn + 80, -101, [[4, 10]]],
+                         [3, rn * 3 + 150, rn * 3 + 100, -100, [[4, 12]]],
+                         [5,rn*1.5+75,rn*1.5+75,-16,[[8,0]]],
+                         [2,rn*7+500,rn*2+150,-17,[[1,14]],-3]]
+    forms = [[0, 1, -2, [[2, 4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
+             [10, 20, -5, [[5, 5]]], [7, int(20 + rn / 12), -6, [[4, 5]], 1]]
 
 class Druid(pygame.sprite.Sprite):
     def __init__(self, X, Y, I, f, F, DS, c, SPE):
@@ -764,17 +815,10 @@ def drtM():
 
 stopround=0
 def moida():
-    global money, income, rn, locked,stopround
+    global money, income, rn, locked,stopround,murder
     for b in range(len(murder)):
         e = murder[0]
         e.die()
-        # e = murder[0]
-        # murder.remove(e)
-        # if e in blns:
-        #     blns.remove(e)
-        #     bloons.remove(e)
-        #     if e in rndbloon:
-        #         rndbloon.remove(e)
     if stopround==0:
         if rndbloon == []:
             stopround=1
@@ -782,16 +826,6 @@ def moida():
             rn += 1
             locked += 1
             ready()
-        #     if e in thorned:
-        #         thorned.remove(e)
-        #     if e in burning:
-        #         burning.remove(e)
-        #     if e in force:
-        #         force.remove(e)
-        #     if e in growbloon:
-        #         growbloon.remove(e)
-        # e.kill()
-
 
 nspd = 0
 nespd = 0
@@ -800,7 +834,6 @@ spe = [loadify('purple'), loadify('regpur'), loadify('blnSHA'), loadify('blnSH')
 health = 100
 ss = 0
 SS = 0
-
 
 def blnM():
     global health, bloon, blns, drts2, sqares, Bloondamage
@@ -811,15 +844,22 @@ def blnM():
                 e.SX = 0
                 xS = e.n[e.f - 1] - e.X
                 yS = e.n[e.f] - e.Y
-                if xS == 0:
+                if yS == 0:
+                    e.SY = 0.000000001
                     e.SX = e.S
-                    e.SY = 0.0001
+                    if xS < 0:
+                        e.SX *= -1
+                elif xS == 0:
+                    e.SX = 0
+                    e.SY = e.S
+                    if yS < 0:
+                        e.SY *= -1
                 else:
-                    e.SX = e.S / math.sqrt(yS ** 2 / xS ** 2 + 1)
+                    e.SX = e.S / math.sqrt(yS ** 2 / xS ** 2+1)
                     if xS < 0:
                         e.SX *= -1
                     e.SY = e.SX * yS / xS
-                if e.ID < -9:
+                if e.ID < -99:
                     if e.SX == 0:
                         if e.SY < 0:
                             e.I = pygame.transform.rotate(e.img, -90)
@@ -845,35 +885,11 @@ def blnM():
                         for i in range(int(1 + (min(int(e.Y + e.s[1] // sqaresize), 11) - int(e.Y // sqaresize)))):
                             sqares[int((e.X + d * sqaresize) // sqaresize + (
                                     e.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
-                    # for d in range(min(int(1 + (int((e.X + e.s[0]) // sqaresize - int(e.X // sqaresize)))), maxsqare)):
-                    #     for i in range(min(int(1 + (int((e.Y + e.s[1]) // sqaresize - int(e.Y // sqaresize)))), 11)):
-                    #         sqares[int((e.X + d * sqaresize) // sqaresize + (e.Y + i * sqaresize) // sqaresize * maxsqare)-1].append(e)
-                    # sqares[int((e.X + e.s[0]) // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)].append(e)
-                    # if e not in sqares[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
-                    #     sqares[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-                    # if e not in sqares[int((e.X + e.s[0]) // sqaresize + e.Y // sqaresize * maxsqare)]:
-                    #     sqares[int((e.X + e.s[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-                    # if e not in sqares[int(e.X // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)]:
-                    #     sqares[int(e.X // sqaresize + (e.Y + e.s[1]) // sqaresize * maxsqare)].append(e)
             else:
                 for d in range(int(1 + (min((int((e.X + e.ss[0]) // sqaresize), maxsqare)) - int(e.X // sqaresize)))):
                     for i in range(int(1 + (min(int(e.Y + e.ss[1] // sqaresize), 11) - int(e.Y // sqaresize)))):
                         sqares2[int((e.X + d * sqaresize) // sqaresize + (
                                     e.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
-                # for d in range(min(int(1 + (int((e.X + e.ss[0]) // sqaresize - int(e.X // sqaresize)))), maxsqare)):
-                #     for i in range(min(int(1 + (int((e.Y + e.ss[1]) // sqaresize - int(e.Y // sqaresize)))), 11)):
-                #         sqares2[
-                #             int((e.X + d * sqaresize) // sqaresize + (e.Y + i * sqaresize) // sqaresize * maxsqare)-1].append(
-                #             e)
-                # sqares2[
-                #     int((e.X + e.ss[0]) // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(
-                #     e)
-                # if e not in sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)]:
-                #     sqares2[int(e.X // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-                # if e not in sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)]:
-                #     sqares2[int((e.X + e.ss[0]) // sqaresize + e.Y // sqaresize * maxsqare)].append(e)
-                # if e not in sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)]:
-                #     sqares2[int(e.X // sqaresize + (e.Y + e.ss[1]) // sqaresize * maxsqare)].append(e)
             if distanceB(e.X, e.Y, e.n[e.f - 1], e.n[e.f], 10):
                 e.SY = 0
                 if e.ID == 99:
@@ -931,16 +947,10 @@ def sendbloon(stuff):
     global bloons, money, income,stopround,CheaterPowers,bloondelay
     if CheaterPowers==0:
         # what is speed,health,HH,ID,spawn,armour,deathrattle
-        bloonlistcomplete = [[2, 1, 1, 1, []], [4, 2, 2, 1, []], [6, 3, 3, 1, []], [8, 4, 4, 1, []], [10, 5, 5, 1, []],
-                             [0, 1, 6, -2, [[2, 4]]], [9, 4, 7, -3, [[1, 5], [1, 8]]], [10, 5, 8, -4, [[1, 5], [4, 2]]],
-                             [15, int(6 + rn / 10), int(6 + rn / 10), -1, []]
-                             ,[7, int(25+rn//12), 0, -9, [],0.4,[[[int(25+rn//12)/3,50],0]]],[10, 20+ rn / 6, 9, -5, [[5, 5]]],
-                             [7, int(20 + rn / 12), 10, -6, [[4, 5]], 1],
-                             [16, rn + 50, 0, -11, [[4, 9]]],
-                             [3, rn * 3 + 100, 0, -10, [[4, 11]]]]
+        bloonlist()
         what = bloonlistcomplete[stuff[1]]
         if what[3] > -10:
-            what[0] += min(rn, 60) / 5
+            what[0] += min(rn, 60) / 10
         if len(stuff) > 3:
             sent = 0
             stopround = 0
@@ -1106,6 +1116,18 @@ def upgrade():
                                     for e in lvlup:
                                         e.F = 2
                                         money -= 75
+                                        cl = 0
+                            elif e.F == 2:
+                                if money > 299:
+                                    for e in lvlup:
+                                        e.F = 3
+                                        money -= 300
+                                        inheriter=inheritor(random.randint(0,2),1+(e.LS-800)/1800,3)
+                                        print(e.H,e.Dmg,e.c)
+                                        inheriter.boost(e)
+                                        print(e.H, e.Dmg, e.c)
+                                        facinherit.append(inheriter)
+                                        inheriter.lists.append(facinherit)
                                         cl = 0
                         elif e.MID == 4:
                             if e.F == 0:
@@ -1296,7 +1318,7 @@ def upgrade():
                                     money -= 400
                                     e.f += 1
                                     e.DS *= 1.2
-                                    e.c /= 1.4
+                                    e.c /= 1.5
                                     cl = 0
 
 
@@ -1343,7 +1365,7 @@ def upgrade():
                                         drtmonks.append(e)
                                         e.i=nailmonk[0]
                                         e.I = nailmonk[0]
-                                        e.c=12*(e.rang**2)/25000
+                                        e.c=15*(e.rang**2)/25000
                                         e.price+=40
                                         cl = 0
                             elif e.f == 1:
@@ -1363,9 +1385,8 @@ def upgrade():
                                     for e in lvlup:
                                         e.f = 3
                                         money -= 2500
-                                        e.c/=3
                                         e.Q=1
-                                        e.SPE=[2,[300,5]]
+                                        e.SPE=[2,[50,5]]
                                         e.i = nailmonk[2]
                                         e.I = nailmonk[2]
                                         e.ID=firethrow
@@ -1435,6 +1456,8 @@ def menuAB(MT, UPGNUM, PGNUM):
             screen.blit(loadify('menFspikes'), (1100, 0))
         elif UPGNUM == 1:
             screen.blit(loadify('crawls'), (1100, 0))
+        elif UPGNUM == 2:
+            screen.blit(loadify('inherit'), (1100, 0))
     if MT == 4:
         if UPGNUM == 0:
             screen.blit(loadify('barrel'), (1100, 0))
@@ -1507,7 +1530,7 @@ def bloon():
         c.firetick[0] += 1
         if c.firetick[0] > c.firetick[1]:
             c.firetick[0] = 0
-            c.hploss(c.firedmg + c.armr)
+            c.hploss(c.firedmg + abs(c.armr))
         screen.blit(
             pygame.transform.scale(fire[int(c.firetick[0] / c.firetick[1] * (len(fire) - 1))], (c.s[0], c.s[1])),
             (c.x- c.EX-c.T, c.y - c.EY-c.R))
@@ -1534,9 +1557,9 @@ def Factory():
 
 def drt():
     for e in drts:
-        screen.blit(e.a, (e.x - e.V, e.y - e.C))
+        screen.blit(e.a, (e.x - e.V, e.y - e.C+20))
     for e in drts2:
-        screen.blit(e.a, (e.X- e.V, e.Y- e.C+50))
+        screen.blit(e.a, (e.X- e.V, e.Y- e.C))
     for e in gunners:
         screen.blit(e.IB, (e.X - e.EX, e.Y - e.EY))
     for e in xplosions:
@@ -1639,19 +1662,19 @@ pliesY = 0
 leafs=[]
 lo = 1
 moar = [pygame.transform.smoothscale(loadify('btd map'), (w - 240, h)).get_size(), loadify('btd map').get_size()]
-tracY = [170, 170, 170, 170, 170, 170, 131, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114,
-         114, 120, 147, 173, 200, 226, 252, 279, 305, 347, 397, 447, 497, 547, 597, 611, 612, 613, 613, 614, 615, 616,
-         617, 618, 619, 602, 552, 502, 452, 402, 368, 365, 362, 365, 415, 465, 510, 511, 512, 513, 514, 515, 516, 517,
-         518, 519, 563, 613, 663, 713, 763, 813, 863, 913, 963, 1013, 170, 170, 170]
-tracX = [110, 160, 210, 260, 310, 360, 376, 411, 461, 511, 561, 611, 661, 711, 761, 811, 861, 911, 961, 1011, 1061,
-         1111, 1161, 1210, 1252, 1294, 1337, 1379, 1422, 1464, 1507, 1522, 1523, 1525, 1526, 1528, 1529, 1492, 1442,
-         1392, 1342, 1292, 1242, 1192, 1142, 1092, 1042, 1009, 1007, 1005, 1003, 1001, 984, 934, 884, 839, 836, 833,
-         825, 775, 725, 675, 625, 575, 525, 475, 425, 375, 368, 368, 367, 366, 365, 364, 363, 362, 361, 360, -36, -84,
-         -133]
-for e in tracY:
-    e *= moar[0][1] / moar[1][1]
-for e in tracX:
-    e *= moar[0][0] / moar[1][0]
+# tracY = [170, 170, 170, 170, 170, 170, 131, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114,
+#          114, 120, 147, 173, 200, 226, 252, 279, 305, 347, 397, 447, 497, 547, 597, 611, 612, 613, 613, 614, 615, 616,
+#          617, 618, 619, 602, 552, 502, 452, 402, 368, 365, 362, 365, 415, 465, 510, 511, 512, 513, 514, 515, 516, 517,
+#          518, 519, 563, 613, 663, 713, 763, 813, 863, 913, 963, 1013, 170, 170, 170]
+# tracX = [110, 160, 210, 260, 310, 360, 376, 411, 461, 511, 561, 611, 661, 711, 761, 811, 861, 911, 961, 1011, 1061,
+#          1111, 1161, 1210, 1252, 1294, 1337, 1379, 1422, 1464, 1507, 1522, 1523, 1525, 1526, 1528, 1529, 1492, 1442,
+#          1392, 1342, 1292, 1242, 1192, 1142, 1092, 1042, 1009, 1007, 1005, 1003, 1001, 984, 934, 884, 839, 836, 833,
+#          825, 775, 725, 675, 625, 575, 525, 475, 425, 375, 368, 368, 367, 366, 365, 364, 363, 362, 361, 360, -36, -84,
+#          -133]
+# for e in tracY:
+#     e *= moar[0][1] / moar[1][1]
+# for e in tracX:
+#     e *= moar[0][0] / moar[1][0]
 select = 0
 spoikX = []
 boss = 0
@@ -1673,11 +1696,12 @@ panelsize = panelsize[1]
 back = pygame.transform.smoothscale(loadify('btd map'), (W, h))
 bloonamount = loadify("killerrock")
 drts3 = []
+facinherit=[]
 bloonumba = 1
 bloonprices = [[[1, 0.1], [2, 0.23]], [[2, 0.2], [4, 0.5]], [[3, 0.3], [6, 0.77]], [[4, 0.4], [7, 0.9]],
                [[5, 0.5], [10, 1.3]],
                [[10, 1], [24, 2]], [[14, 1.2], [30, 2.2]], [[14, 1.2], [30, 2.2]], [[10, 0.9], [24, 2]],
-               [[80, 2]],[[90, 0.25], [150, 0.5]], [[300, 0], [500, 0]], [[800, 1]], [[1800, -50]]]
+               [[80, 2]],[[90, 0.25], [150, 0.5]], [[300, 0], [500, 0]], [[800, 1]], [[1800, -50]],[[400, 10]],[[1200, 10]]]
 chosen=0
 yard=pygame.transform.smoothscale(loadify("backyard"), (w, h))
 maps=[back,yard]
@@ -1739,8 +1763,8 @@ def mapspecial2():
 
 
 
-    blntrac.append(1)
-    blntrac.append(1000)
+    blntrac.append(1454)
+    blntrac.append(430)
     xS = (blntrac[len(blntrac) - 2]) - (blntrac[len(blntrac) - 4])
     yS = (blntrac[len(blntrac) - 1]) - (blntrac[len(blntrac) - 3])
     if xS == 0:
@@ -1781,6 +1805,8 @@ def mapspecial2():
     else:
         yimg = blntrac[len(blntrac) - 3]
     images.append(Image(newpath, ximg - extrax, yimg - extray))
+    for n in range(len(blntrac)//2):
+        images.append(Image(stopper, blntrac[n*2-2]-70, blntrac[n*2-1]-70))
 
 
 mapspecials=[mapspecial1,mapspecial2]
@@ -1843,10 +1869,12 @@ while running:
                     if select == 0:
                         if money > 24:
                             money -= 25
+
                             drtmonks.append(drtmonkey(XX[0] - 60, XX[1] - 80, loadify('drtmonk')
                                                       , 0, 0, 10 + random.randint(-9, 10), 1  # 10+random.randint(-9,10)
                                                       , 200 + random.randint(-120, 120), loadify('drtn'), -10, [0, 0],
                                                       [0, 0]))
+                            pygame.mixer.Sound.play(popping)
                     elif select == 1:
                         if money > 74:
                             money -= 75
@@ -1858,16 +1886,20 @@ while running:
                     elif select == 2:
                         if money > 99:
                             money -= 100
-                            factories.append(factory(XX[0] - 60, XX[1] - 80, loadify('spikefac')
+                            factorie=factory(XX[0] - 60, XX[1] - 80, loadify('spikefac')
                                                      , 0, 0, 5, 200 + random.randint(-120, 120)
-                                                     , loadify('spikes'), 2000 + random.randint(-900, 900)
-                                                     , [0, 0]))
+                                                     , loadify('spikes'), 2000 + random.randint(-1200, 1200)
+                                                     , [0, 0],random.randint(200,300))
+                            factorie.boot()
+                            for m in facinherit:
+                                m.boost(factorie)
+                            factories.append(factorie)
                     elif select == 3:
                         if money > 249:
                             money -= 250
                             gunners.append(gunner(XX[0] - 60, XX[1] - 80, loadify('guner')
                                                   , 0, 0, 6 + random.randint(-4, 4), 20 + random.randint(-12, 12)
-                                                  , loadify('drtn'), 1, [0, 0], [0, 0]))
+                                                  , loadify('drtn'), 2, [0, 0], [0, 0]))
                     elif select == 4:
                         if money > 49:
                             money -= 50
@@ -1982,7 +2014,8 @@ while running:
 
     if CheaterPowers == 1:
         for e in bloons:
-            e.hploss(100)
+            if e not in murder:
+                e.hploss(100)
 
 
     for z in range(204):
@@ -2026,30 +2059,23 @@ while running:
     moida()
     for e in factories:
         if (ti - e.C) > e.c:
-            if not len(e.spikeX) < 4:
+            if len(e.track)>0:
                 e.C = ti
-                elo = random.randint(0, len(e.spikeX) - 2)
-                cl = random.uniform(0, 1)
-                spikX = (1 - cl) * e.spikeX[elo] + e.spikeX[elo + 1] * cl
-                spikY = (1 - cl) * e.spikeY[elo] + e.spikeY[elo + 1] * cl
-                drtnew = Drt2(int(spikX), int(spikY), e.ID, e.H, e.LS + ti, e.f, e.F, e.tracpos, e.P, e.Dmg)
-
-                for d in range(int(1 + (
-                        min((int((drtnew.X + drtnew.ss[0]) // sqaresize), maxsqare)) - int(drtnew.X // sqaresize)))):
+                if len(e.track)==1:
+                    numbpath=0
+                else:
+                    numbpath=random.randint(0,len(e.track)-1)
+                point1=e.track[numbpath][0][0]
+                point2 = e.track[numbpath][0][1]
+                howfar=random.randint(1,100)
+                point3=[point1[0]+howfar*(point2[0]-point1[0])/100,point1[1]+howfar*(point2[1]-point1[1])/100]
+                drtnew = Drt2(point3[0], point3[1], e.ID, e.H, e.LS + ti, e.f, e.F, e.track[numbpath][1], e.P, e.Dmg)
+                for d in range(int(1 + (min((int((drtnew.X + drtnew.ss[0]) // sqaresize), maxsqare)) - int(drtnew.X // sqaresize)))):
                     for i in range(
                             int(1 + (min(int(drtnew.Y + drtnew.ss[1] // sqaresize), 11) - int(drtnew.Y // sqaresize)))):
                         sqaresa[int((drtnew.X + d * sqaresize) // sqaresize + (
                                 drtnew.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(drtnew)
                 drts2.append(drtnew)
-
-                # sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)].append(drtnew)
-                # if drtnew not in sqaresa[int(drtnew.X // sqaresize + drtnew.Y // sqaresize * maxsqare)]:
-                #     sqaresa[int(drtnew.X // sqaresize + drtnew.Y // sqaresize * maxsqare)].append(drtnew)
-                # if drtnew not in sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + drtnew.Y // sqaresize * maxsqare)]:
-                #     sqaresa[int((drtnew.X + drtnew.ss[0]) // sqaresize + drtnew.Y // sqaresize * maxsqare)].append(drtnew)
-                # if drtnew not in sqaresa[int(drtnew.X // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)]:
-                #     sqaresa[int(drtnew.X // sqaresize + (drtnew.Y + drtnew.ss[1]) // sqaresize * maxsqare)].append(drtnew)
-                # drts2.append(drtnew)
     for e in druidart:
         if e.D[0] + e.D[1] < ti:
             drts.append(e)
@@ -2266,6 +2292,11 @@ while running:
                         b.ss = pygame.Surface.get_size(b.I)
                     if rel == b.U:
                         break
+    for _ in range(len(bloondelay)):
+        if bloondelay[0].X<ti:
+            bloondelay[0].activate()
+        else:
+            break
     blnM()
 
     drtM()
@@ -2303,11 +2334,6 @@ while running:
                                     (0, 0, 0))
                 screen.blit(bwee, (XX[0] - 162, XX[1] + 62))
     pygame.display.update()
-    for e in bloondelay:
-        if e.X<ti:
-            e.activate()
-        else:
-            break
     ti += 1
     for e in drtmonks:
         if e.LS == ti:
@@ -2342,8 +2368,6 @@ while running:
             e.S = 0
             e.s = 0
             mines.remove(e)
-
-
 
 
 
