@@ -1615,6 +1615,9 @@ monksel = [loadify('drtmonk'), loadify('engineer')
 
 
 def death(x, y):
+    connection.Send({"action": "dead", "what": me.ID})
+    connection.Pump()
+    nwl.Pump()
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1712,7 +1715,7 @@ def mapspecial1():
 blunpath=loadify("path")
 
 def mapspecial2():
-    global blntrac,images,extrax
+    global blntrac,images,extrax,factories,drts2
     images=[]
     blntrac=[blntrac[0],blntrac[1]]
     for e in range(min(len(monks),6)):
@@ -1762,7 +1765,6 @@ def mapspecial2():
             images.append(Image(newpath, ximg - extrax, yimg - extray))
 
 
-
     blntrac.append(1454)
     blntrac.append(430)
     xS = (blntrac[len(blntrac) - 2]) - (blntrac[len(blntrac) - 4])
@@ -1807,7 +1809,13 @@ def mapspecial2():
     images.append(Image(newpath, ximg - extrax, yimg - extray))
     for n in range(len(blntrac)//2):
         images.append(Image(stopper, blntrac[n*2-2]-70, blntrac[n*2-1]-70))
-
+    for f in factories:
+        f.boot()
+    for e in drts2:
+        if e.CR > 1:
+            if e.f > len(blntrac) - 1:
+                e.f = len(blntrac) - 1
+            e.n = blntrac
 
 mapspecials=[mapspecial1,mapspecial2]
 blntracks=[blntrac1,blntrac2]
@@ -2043,7 +2051,7 @@ while running:
                                 b.hploss(d.dmg - b.armr)
                             if d.H < 1:
                                 if d.P[0] > 0:
-                                    xplosions.append(explode(d.X, d.X, d.P[2], d.P[0]))
+                                    xplosions.append(explode(d.X, d.Y, d.P[2], d.P[0]))
                                     for c in bloons:
                                         if c.armr < d.P[1]:
                                             if distanceB(c.X, c.Y, d.X + 5, d.Y + 50, 100+d.P[0] + c.siz):
@@ -2347,6 +2355,8 @@ while running:
             if e.CR > 1:
                 blns.append(e)
                 e.n = blntrac
+                if e.f>len(e.n)-1:
+                    e.f=len(e.n)-1
                 e.SX = 0
                 e.SY = 0
                 e.S = 3

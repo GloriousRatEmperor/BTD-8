@@ -43,13 +43,20 @@ class player_channel(Channel):
 
     def Network_mapchoose(self, data):
         global mapchosen
-        if len(players)>1 and mapchosen==0:
+        if mapchosen==0:
             mapchosen=1
             for channel in self.server.all_channels:
                 channel.Send({"action": "mapchosen", "info": data["what"]})
-        else:
-            print([len(players), mapchosen])
 
+    def Network_dead(self, data):
+        global players
+        for e in players:
+            print(e.ID,data["what"])
+            if e.ID==data["what"]:
+                players.remove(e)
+                print(1)
+        if nextround==len(players):
+            rnd(0)
     def Network_ready(self,data):
         global nextround
         nextround+=1
