@@ -529,7 +529,7 @@ class Drt2(pygame.sprite.Sprite):
                 b.hploss(d.dmg - b.armr)
             if d.H < 1:
                 if d.P[0] > 0:
-                    timexplod.append(Timexplod(d.P[1], d.P[0], [], d.x + d.V, d.y + d.C, d.P[2], d.P[0]))
+                    timexplod.append(Timexplod(d.P[1], d.P[0], [], d.X + d.V, d.Y + d.C, d.P[2], d.P[0]))
                 d.die()
 
     def die(d):
