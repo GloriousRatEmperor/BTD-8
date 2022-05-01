@@ -910,7 +910,7 @@ nspd = 0
 nespd = 0
 newspd = 0
 spe = [loadify('purple'), loadify('regpur'), loadify('blnSHA'), loadify('blnSH'), loadify('blooncart')]
-health = 1000
+health = 100
 ss = 0
 SS = 0
 
@@ -1232,7 +1232,7 @@ def upgrade():
                                             e.I = loadify('tank')
                                         else:
                                             e.I = loadify('tankwide')
-                                        e.H += 6
+                                        e.H += 3
                                         e.dmg += 1
                                         g = pygame.Surface.get_size(e.ID)
                                         e.ID = pygame.transform.smoothscale(loadify('blcdrt'), (g[0], g[1]))
@@ -2306,7 +2306,7 @@ while running:
     for b in leafs:
         rel = 0
         for e in bloons:
-            if e.ID>-10:
+            if e.ID>-17:
                 if distanceB(e.X, e.Y, b.X, b.Y, b.rang + e.siz):
                     if b.LS == -10:
                         pliesX = 10
