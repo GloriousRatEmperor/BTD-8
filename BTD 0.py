@@ -909,7 +909,7 @@ nspd = 0
 nespd = 0
 newspd = 0
 spe = [loadify('purple'), loadify('regpur'), loadify('blnSHA'), loadify('blnSH'), loadify('blooncart')]
-health = 100
+health = 1000
 ss = 0
 SS = 0
 
