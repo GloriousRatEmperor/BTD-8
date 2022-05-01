@@ -2338,7 +2338,7 @@ while running:
                         if b.power >= 1:
                             e.hploss(b.power)
 
-                    if not h>e.Y>0:
+                    elif not h>e.Y>0:
                         e.Y=max(min(e.Y,h),0)
                         if b.power>=1:
                             e.hploss(b.power)
