@@ -483,7 +483,7 @@ class mine(pygame.sprite.Sprite):
         #                 c.hploss(int(d.P[1]) - c.armr)
     def atack(d,b):
         global depleted
-        if distanceB(b.X, b.Y + b.R, d.X, d.Y, 25 + b.siz):
+        if distanceB(b.X, b.Y, d.X, d.Y, 25 + b.siz):
             d.H -= 1
             if b.armr < d.dmg:
                 b.hploss(d.dmg - b.armr)
@@ -523,7 +523,7 @@ class Drt2(pygame.sprite.Sprite):
 
     def atack(d,b):
         global depleted,blns,sqaresa,drts2
-        if distanceB(b.X, b.Y + b.R, d.X, d.Y, 25 + b.siz):
+        if distanceB(b.X, b.Y, d.X, d.Y, 25 + b.siz):
             d.H -= 1
             if b.armr < d.dmg:
                 b.hploss(d.dmg - b.armr)
@@ -563,13 +563,11 @@ class Bloon(pygame.sprite.Sprite):
             self.ondeath = []
         else:
             self.ondeath =deathrattle
-        self.EX = 0
         self.made = sent
         if sent == 0:
             rndbloon.append(self)
             self.lists.append(rndbloon)
         self.spawn = spawn
-        self.EY = EY
         self.ID = ID
         self.H = H
         self.r = r
@@ -601,6 +599,9 @@ class Bloon(pygame.sprite.Sprite):
         elif self.ID == -100:
             self.I = bossI
             self.img = bossI
+        elif self.ID == -110:
+            self.I = bomberloon
+            self.img = bomberloon
         elif -1 > self.ID > -7:
             self.I = A[-self.ID + 3]
         elif self.ID == -9:
@@ -618,8 +619,8 @@ class Bloon(pygame.sprite.Sprite):
         ss = pygame.Surface.get_size(self.I)
         self.s = pygame.Surface.get_size(self.I)
         self.siz = (ss[0] + ss[1]) / 4
-        self.T = (ss[0] / 2)
-        self.R = (ss[1] / 2)
+        self.EX = (ss[0] / 2)
+        self.EY = (ss[1] / 2)
         self.f = f
         self.x = -50
         self.y = 50
@@ -838,10 +839,11 @@ def bloonlist():
                          [7, int(25 + rn // 12), 0, -9, [], 0.4, [[[int(25 + rn // 12) / 3, 50], 0]]],
                          [10, 20 + rn / 6, 9, -5, [[5, 5]]],
                          [7, int(20 + rn / 12), 10, -6, [[4, 5]], 1],
-                         [16, rn + 50, rn + 80, -101, [[4, 10]]],
-                         [3, rn * 3 + 150, rn * 3 + 100, -100, [[4, 12]]],
-                         [5,rn*1.5+75,rn*1.5+75,-16,[[8,0]]],
-                         [2,rn*7+500,rn*2+150,-17,[[1,14]],-3]]
+                         [18, rn + 50, rn + 80, -101, [[4, 10]]],
+                         [7, rn * 15 + 1000, rn * 15 + 1000, -100, [[4, 12]]],
+                         [7,rn*10+150,rn*10+150,-16,[[1,0]]],
+                         [5,rn*25+1500,rn*25+1500,-17,[[1,14]],-3],
+                         [6, rn * 15 + 1200, rn * 14 + 900, -110, [[3, 12],[1,13]],0.9]]
 
     forms = [[0, 1, -2, [[2, 4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
              [10, 20, -5, [[5, 5]]], [7, int(20 + rn / 12), -6, [[4, 5]], 1]]
@@ -943,13 +945,10 @@ def blnM():
                 elif e.SX > 0:
                     e.I = pygame.transform.rotate(e.img, -math.atan(e.SY / e.SX) * 180 / math.pi)
                 else:
-                    e.I = pygame.transform.rotate(e.img, 180 - math.atan(e.SY / e.SX) * 180 / math.pi)
+                    e.I = pygame.transform.rotate(pygame.transform.flip(e.img,False,True), 180 - math.atan(e.SY / e.SX) * 180 / math.pi)
                 ss = pygame.Surface.get_size(e.I)
-                e.EX = int(ss[0] / 2)
-                e.EY = int(ss[1] / 2)
-                e.T = 0
-                e.R = 0
-
+                e.EX = (ss[0] / 2)
+                e.EY = (ss[1] / 2)
         e.X += e.SX
         e.Y += e.SY
         e.x = int(e.X)
@@ -957,19 +956,21 @@ def blnM():
         e.sqares=[]
         if e not in drts2:
             if e.X > 0:
-                for d in range(int(1 + (min((int((e.X + e.s[0]) // sqaresize), maxsqare)) - int(e.X // sqaresize)))):
-                    for i in range(int(1 + (min(int(e.Y + e.s[1] // sqaresize), 11) - int(e.Y // sqaresize)))):
-                        sqares[int((e.X + d * sqaresize) // sqaresize + (
-                                e.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
-                        e.sqares.append(sqares[int((e.X + d * sqaresize) // sqaresize + (
-                                e.Y + i * sqaresize) // sqaresize * maxsqare) - 1])
+                for d in range(int(1 + (min((int((e.X + e.EX) // sqaresize), maxsqare)) - int(max(e.X- e.EX,0) // sqaresize)))):
+                    for i in range(int(1 + (min(int((e.Y + e.EY) // sqaresize), 11) - int(max(e.Y- e.EY,0) // sqaresize)))):
+
+                        sqares[int((max(e.X- e.EX,0) + d * sqaresize) // sqaresize + (
+                                max(e.Y- e.EY,0) + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
+                        e.sqares.append(sqares[int((max(e.X- e.EX,0) + d * sqaresize) // sqaresize + (
+                                max(e.Y- e.EY,0) + i * sqaresize) // sqaresize * maxsqare) - 1])
         else:
-            for d in range(int(1 + (min((int((e.X + e.ss[0]) // sqaresize), maxsqare)) - int(e.X // sqaresize)))):
-                for i in range(int(1 + (min(int(e.Y + e.ss[1] // sqaresize), 11) - int(e.Y // sqaresize)))):
-                    sqares2[int((e.X + d * sqaresize) // sqaresize + (
-                                e.Y + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
-                    e.sqares.append(sqares2[int((e.X + d * sqaresize) // sqaresize + (
-                                e.Y + i * sqaresize) // sqaresize * maxsqare) - 1])
+            for d in range(int(1 + (min((int((e.X+ e.V) // sqaresize), maxsqare)) - int(max(e.X- e.V,0) // sqaresize)))):
+                for i in range(int(1 + (min(int((e.Y + e.C) // sqaresize), 11) - int(max(e.Y- e.C,0) // sqaresize)))):
+                    sqares2[int((max(e.X- e.V,0) + d * sqaresize) // sqaresize + (
+                                max(e.Y- e.C,0) + i * sqaresize) // sqaresize * maxsqare) - 1].append(e)
+                    e.sqares.append(sqares2[int((max(e.X- e.V,0) + d * sqaresize) // sqaresize + (
+                                max(e.Y- e.C,0) + i * sqaresize) // sqaresize * maxsqare) - 1])
+
         if distanceB(e.X, e.Y, e.n[e.f - 1], e.n[e.f], 10):
             e.SY = 0
             if e.ID == 99:
@@ -1458,11 +1459,11 @@ def upgrade():
                                         e.f = 3
                                         money -= 2500
                                         e.Q=1
-                                        e.SPE=[2,[50,5]]
+                                        e.SPE=[2,[40,25]]
                                         e.i = nailmonk[2]
                                         e.I = nailmonk[2]
                                         e.ID=firethrow
-                                        e.dmg=3
+                                        e.dmg=10
                                         e.H+=6
                                         e.price+=1900
                                         cl = 0
@@ -1595,7 +1596,7 @@ burning = []
 
 def bloon():
     for e in bloons:
-        screen.blit(e.I, (e.x - e.EX-e.T, e.y - e.EY-e.R))
+        screen.blit(e.I, (e.x - e.EX, e.y - e.EY))
     for b in thorned:
         screen.blit(pygame.transform.smoothscale(branch, (b.s[0], b.s[1])), (b.x - b.EX, b.y - b.EY))
     for c in burning:
@@ -1605,7 +1606,7 @@ def bloon():
             c.hploss(c.firedmg + abs(c.armr))
         screen.blit(
             pygame.transform.scale(fire[int(c.firetick[0] / c.firetick[1] * (len(fire) - 1))], (c.s[0], c.s[1])),
-            (c.x- c.EX-c.T, c.y - c.EY-c.R))
+            (c.x- c.EX, c.y - c.EY))
 
 
 def drtmonk():
@@ -1629,7 +1630,7 @@ def Factory():
 
 def drt():
     for e in drts:
-        screen.blit(e.a, (e.x - e.V, e.y - e.C+20))
+        screen.blit(e.a, (e.x - e.V, e.y - e.C))
     for e in drts2:
         screen.blit(e.a, (e.X- e.V, e.Y- e.C))
     for e in gunners:
@@ -1641,6 +1642,7 @@ def drt():
 choecko = loadify('spikes')
 gold = loadify('gold')
 bossI = loadify('blnboss')
+bomberloon = loadify('bombarder')
 boss2 = loadify('capsule')
 rel = 1
 
@@ -1776,7 +1778,7 @@ bloonumba = 1
 bloonprices = [[[1, 0.1], [2, 0.23]], [[2, 0.2], [4, 0.5]], [[3, 0.3], [6, 0.77]], [[4, 0.4], [7, 0.9]],
                [[5, 0.5], [10, 1.3]],
                [[10, 1], [24, 2]], [[14, 1.2], [30, 2.2]], [[14, 1.2], [30, 2.2]], [[10, 0.9], [24, 2]],
-               [[80, 2]],[[90, 0.25], [150, 0.5]], [[300, 0], [500, 0]], [[800, 1]], [[1800, -50]],[[400, 10]],[[1200, 10]]]
+               [[80, 2]],[[90, 0.25], [150, 0.5]], [[300, 0], [500, 0]], [[800, 1]], [[1800, -50]],[[400, 10]],[[1200, 50]],[[2400, -100]]]
 chosen=0
 yard=pygame.transform.smoothscale(loadify("backyard"), (w, h))
 maps=[back,yard]
@@ -1887,6 +1889,7 @@ def mapspecial2():
         if e.CR > 1:
             if e.f > len(blntrac) - 1:
                 e.f = len(blntrac) - 1
+            e.SY=0
             e.n = blntrac
 
 mapspecials=[mapspecial1,mapspecial2]
@@ -2431,7 +2434,3 @@ while running:
             e.s = 0
             mines.remove(e)
             e.lists.remove(mines)
-
-
-
-

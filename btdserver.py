@@ -139,7 +139,7 @@ f=1
 updates=[]
 rn=5
 roundsize=0
-blnpower=[1,1.8,2.5,3.3,4,7,13,11,11,15,17,17,30,40,15,30]
+blnpower=[1,1.8,2.5,3.3,4,7,13,11,11,15,17,17,30,40,15,30,60]
 def rnd(b):
     global rn,players,nextround,ch,blnpower,roundsize
     if b==0:
@@ -148,7 +148,17 @@ def rnd(b):
         rn+=1
     ch = 5
     regrow = random.choice([0, 1])
-    if rn > 40:
+    if rn > 60:
+
+        ch = random.randint(10, 16)
+        if ch > 12:
+            if ch>14:
+                ch+=1
+            regrow = 0
+        else:
+            ch=5
+
+    elif rn > 40:
         ch = random.randint(10, 15)
         if ch > 12:
             if ch==15:
@@ -161,7 +171,7 @@ def rnd(b):
 
     if ch == 5:
         if rn > 30:
-            ch = random.randint(6, 14)
+            ch = random.randint(9, 14)
             if ch>12:
                 regrow=0
                 if ch==14:
@@ -176,7 +186,7 @@ def rnd(b):
             ch = random.randint(1, 3)
             #[howmany, which, regrow (random.randint(50,350) is standard)]
     for channel in srvr.all_channels:
-        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 5 + 1+b)),70)
+        sendamount=min(int(rn**2/5 / int(ch*blnpower[ch-1] / 5 + 1+b)),50)
         channel.Send({"action": "ugotbloonsmon", "takedis": [sendamount, ch-1, regrow, roundsize/sendamount]})
     if random.randint(int(rn / 3), rn) > 10 + b * 2:
         rnd(b + 1)
