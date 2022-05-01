@@ -425,6 +425,7 @@ class druidball(Drt):
                         druidart.append(self)
                         for r in self.sqares:
                             r.remove(self)
+                        self.sqares=[]
                         self.D[0] = ti
                 else:
                     self.pierce[0] -= 1
