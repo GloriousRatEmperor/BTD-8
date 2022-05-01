@@ -1984,7 +1984,7 @@ while running:
                             money -= 250
                             gunners.append(gunner(XX[0] - 60, XX[1] - 80, loadify('guner')
                                                   , 0, 0, 6 + random.randint(-4, 4), 20 + random.randint(-12, 12)
-                                                  , loadify('drtn'), 2, [0, 0], [0, 0]))
+                                                  , loadify('drtn'), 1, [0, 0], [0, 0]))
                     elif select == 4:
                         if money > 49:
                             money -= 50
