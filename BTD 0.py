@@ -354,8 +354,8 @@ class Drt(pygame.sprite.Sprite):
                     loss.SY = 0
                 else:
                     if loss.IM == 0:
-                        loss.SX /= self.SPE[c * 2 - 1] + 1
-                        loss.SY /= self.SPE[c * 2 - 1] + 1
+                        loss.SX /= self.SPE[c * 2 - 1] + 1.2
+                        loss.SY /= self.SPE[c * 2 - 1] + 1.2
                         loss.IM = 1
             elif self.SPE[c * 2 - 2] == 2:
                 if loss not in burning:
@@ -381,9 +381,11 @@ class Drt(pygame.sprite.Sprite):
         #                 c.hploss(int(d.P[1]) - c.armr)
 
     def atack(d,b):
+        global itded
         if distanceB(b.X, b.Y - 10, d.X + 5, d.Y + 5, 20 + b.siz + d.siz):
             d.special(b)
-            if d.dmg > b.armr:
+            if d.dmg > b.armr+itded:
+                itded=0
                 b.hploss(d.dmg - b.armr)
             d.H -= 1
             if d.H < 1:
@@ -399,13 +401,15 @@ class Drt(pygame.sprite.Sprite):
         depleted += 1
         drts.remove(d)
         del d
-
+itded=0
 class druidball(Drt):
+    global itded
     def __init__(self, X, Y, S, s, I, H, x, y, P, SPE, DMG=1, bounce=0, pierce=[0, 0]):
         super().__init__(X, Y, S, s, I, H, x, y, P, SPE, DMG, bounce)
         self.pierce = pierce
 
     def special(self, loss):
+        global depleted
         for c in range(len(self.SPE) // 2):
             if self.SPE[c * 2 - 2] == 2:
                 if self.pierce[0] < 1:
@@ -427,6 +431,7 @@ class druidball(Drt):
                             r.remove(self)
                         self.sqares=[]
                         self.D[0] = ti
+                        depleted+=1
                 else:
                     self.pierce[0] -= 1
                     self.H += 1
@@ -438,6 +443,11 @@ class druidball(Drt):
                     loss.SY /= loss.S * 10
                     loss.SX /= loss.S * 10
                     loss.S = 0.1
+            elif self.SPE[c * 2 - 2] == 4:
+                if loss.ID<-17:
+                    deadnow=died
+                    loss.hploss(self.dmg*5)
+                    itded=1000000*(deadnow-dead)
 
 
 minemine = loadify('supermine')
@@ -631,7 +641,7 @@ class Bloon(pygame.sprite.Sprite):
         self.q = self.I
 
     def hploss(self, loss):
-        global hploss, money, rel, POWER, power
+        global hploss, money, rel, POWER, power,bloonlistcomplete
         if self.ID == 1:
             self.H -= int(loss)
             self.HH -= int(loss)
@@ -640,7 +650,7 @@ class Bloon(pygame.sprite.Sprite):
             else:
                 self.SX /= self.S
                 self.SY /= self.S
-                self.S = speed(self.H) / 5
+                self.S =(bloonlistcomplete[self.H][0] +min(rn, 60) / 10)/5
                 self.SX *= self.S
                 self.SY *= self.S
                 self.I = self.i[self.H - 1]
@@ -741,7 +751,7 @@ class Bloon(pygame.sprite.Sprite):
                 e.I = e.i[e.H - 1]
                 e.SX /= e.S
                 e.SY /= e.S
-                e.S = speed(e.H) / 5
+                e.S =(bloonlistcomplete[e.H][0] +min(rn, 60) / 10)/5
                 e.SX *= e.S
                 e.SY *= e.S
             else:
@@ -840,11 +850,12 @@ def bloonlist():
                          [7, int(25 + rn // 12), 0, -9, [], 0.4, [[[int(25 + rn // 12) / 3, 50], 0]]],
                          [10, 20 + rn / 6, 9, -5, [[5, 5]]],
                          [7, int(20 + rn / 12), 10, -6, [[4, 5]], 1],
-                         [18, rn + 50, rn + 80, -101, [[4, 10]]],
-                         [7, rn * 15 + 1000, rn * 15 + 1000, -100, [[4, 12]]],
-                         [7,rn*10+150,rn*10+150,-16,[[1,0]]],
-                         [5,rn*25+1500,rn*25+1500,-17,[[1,14]],-3],
-                         [6, rn * 15 + 1200, rn * 14 + 900, -110, [[3, 12],[1,13]],0.9]]
+
+                         [18, 0.008*rn**2 + 50, rn + 80, -101, [[4, 10]]],
+                         [7, 0.16*rn**2 + 1000, rn * 15 + 1000, -100, [[4, 12]]],
+                         [7,0.026*rn**2 + 150,rn*10+150,-16,[[1,0]]],
+                         [5,0.26*rn**2 + 1500,rn*25+1500,-17,[[1,14]],-3],
+                         [6, 0.8*rn**2 + 4800, rn * 60 + 4800, -110, [[3, 12],[1,13]],0.9]]
 
     forms = [[0, 1, -2, [[2, 4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
              [10, 20, -5, [[5, 5]]], [7, int(20 + rn / 12), -6, [[4, 5]], 1]]
@@ -1291,20 +1302,21 @@ def upgrade():
                                     cl = 0
                             elif e.f == 1:
                                 if money > 39:
-                                    for e in lvlup:
-                                        e.c = e.c + 2
-                                        e.DS = e.DS - 5
-                                        if e.F > 0:
-                                            e.DS -= 5
-                                        if e.DS < 2:
-                                            e.c = 10000000
-                                        e.H += +2
-                                        e.f = 2
-                                        money -= 40
-                                        if e.F < 3:
-                                            e.I = loadify('beefdrtmonk')
-                                            e.ID = loadify('beefdrt')
-                                        cl = 0
+                                    e.c = e.c + 2
+                                    if e.F > 0:
+                                        e.DS /=2
+                                    e.DS -= 5
+                                    if e.DS < 2:
+                                        e.c = 10000000
+                                    if e.F > 0:
+                                        e.DS *=2
+                                    e.H += +2
+                                    e.f = 2
+                                    money -= 40
+                                    if e.F < 3:
+                                        e.I = loadify('beefdrtmonk')
+                                        e.ID = loadify('beefdrt')
+                                    cl = 0
                             elif e.f == 2 and e.F < 3:
                                 if money > 99:
                                     for r in range(9):
@@ -1395,6 +1407,25 @@ def upgrade():
                                     e.c /= 1.5
                                     cl = 0
 
+                            elif e.f == 2 and e.F<3:
+                                if money > 1999:
+
+                                    e.I = loadify("gunnerjugger")
+                                    e.ID = loadify("juggerdrt")
+                                    money -= 2000-e.F*200
+                                    e.c = e.c/e.DS*38
+                                    e.DS = e.DS - 2
+                                    if e.DS < 5:
+                                        e.c = 10000000
+                                    e.H += 13
+                                    e.dmg+=13
+                                    e.f = 3
+                                    e.F=-1
+                                    e.f += 1
+                                    e.DS *= 1.2
+                                    e.c /= 1.5
+                                    cl = 0
+
 
                         elif e.MID == 5:
                             if e.f == 0:
@@ -1422,7 +1453,7 @@ def upgrade():
                                         e.bounce += 4
                                         cl = 0
                             elif e.f == 1:
-                                if money > 89:
+                                if money > 90:
                                     for e in lvlup:
                                         e.SPE.append(3)
                                         e.SPE.append(0)
@@ -1576,6 +1607,8 @@ def menuAB(MT, UPGNUM, PGNUM):
             screen.blit(loadify('larger'), (1100, 450))
         elif PGNUM == 1:
             screen.blit(loadify('greatbarrel'), (1100, 450))
+        elif PGNUM == 2:
+            screen.blit(loadify('juggermen'), (1100, 450))
     if MT == 5:
         if PGNUM == 0:
             screen.blit(loadify('brambles'), (1100, 450))
@@ -1705,16 +1738,6 @@ def death(x, y):
 io = 0
 
 
-def speed(ch):
-    if ch == 10 + rn / 10:
-        speeeed = rn / 5 + 15
-    else:
-        if ch == 6:
-            ch = 0
-        speeeed = rn / 5 + ch * 2
-    return speeeed
-
-
 TL = [loadify('turret'), loadify('turretb'), loadify('turret2b'), loadify('turret2')
     , loadify('tureetb'), loadify('tureet'), loadify('waterb'), loadify('water')]
 
@@ -1779,7 +1802,7 @@ bloonumba = 1
 bloonprices = [[[1, 0.1], [2, 0.23]], [[2, 0.2], [4, 0.5]], [[3, 0.3], [6, 0.77]], [[4, 0.4], [7, 0.9]],
                [[5, 0.5], [10, 1.3]],
                [[10, 1], [24, 2]], [[14, 1.2], [30, 2.2]], [[14, 1.2], [30, 2.2]], [[10, 0.9], [24, 2]],
-               [[80, 2]],[[90, 0.25], [150, 0.5]], [[300, 0], [500, 0]], [[800, 1]], [[1800, -50]],[[400, 10]],[[1200, 50]],[[2400, -100]]]
+               [[80, 2]],[[90, 0.25], [150, 0.5]], [[300, 0], [500, 0]], [[800, 1]], [[1800, -50]],[[200, 26.65]],[[1200, 100]],[[2400, -100]]]
 chosen=0
 yard=pygame.transform.smoothscale(loadify("backyard"), (w, h))
 maps=[back,yard]
@@ -2107,10 +2130,9 @@ while running:
         for b in range(len(sqares[z])):
             depleted = 0
             for d in range(len(sqares2[z])):
-                try:
-                    sqares2[z][d-depleted].atack(sqares[z][b-died])
-                except IndexError:
-                    print(z,d,depleted,b,died,len(sqares[z]),len(sqares2[z]))
+                sqares2[z][d-depleted].atack(sqares[z][b-died])
+                # except IndexError:
+                #     print(z,d,depleted,b,died,len(sqares[z]),len(sqares2[z]))
                 if died>dead:
                     dead=died
                     break
@@ -2420,6 +2442,8 @@ while running:
                 e.ID = 99
                 for q in e.sqares:
                     q.remove(e)
+                for t in e.numbas:
+                    sqares2[t].remove(e)
                 e.sqares=[]
                 e.numbas=[]
             else:

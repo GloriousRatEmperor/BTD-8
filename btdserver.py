@@ -148,8 +148,7 @@ def rnd(b):
         rn+=1
     ch = 5
     regrow = random.choice([0, 1])
-    if rn > 60:
-
+    if rn > 75:
         ch = random.randint(10, 16)
         if ch > 12:
             if ch>14:
@@ -158,7 +157,7 @@ def rnd(b):
         else:
             ch=5
 
-    elif rn > 40:
+    elif rn > 55:
         ch = random.randint(10, 15)
         if ch > 12:
             if ch==15:
@@ -166,6 +165,16 @@ def rnd(b):
             regrow = 0
         else:
             ch=5
+
+    elif rn > 40:
+        ch = random.randint(10, 14)
+        if ch > 12:
+            if ch==14:
+                ch+=2
+            regrow = 0
+        else:
+            ch=5
+
     if regrow == 1:
         regrow =random.randint(150, 250)
 
