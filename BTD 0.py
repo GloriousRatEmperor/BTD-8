@@ -347,7 +347,7 @@ class Drt(pygame.sprite.Sprite):
     def special(self, loss):
         for c in range(len(self.SPE) // 2):
             if self.SPE[c * 2 - 2] == 1:
-                if loss.ID > -10:
+                if loss.ID > -17:
                     loss.f -= self.SPE[c * 2 - 1] * 2
                     if loss.f < 1:
                         loss.f = 1
@@ -381,11 +381,11 @@ class Drt(pygame.sprite.Sprite):
         #                 c.hploss(int(d.P[1]) - c.armr)
 
     def atack(d,b):
-        global itded
+        global conntinue
         if distanceB(b.X, b.Y - 10, d.X + 5, d.Y + 5, 20 + b.siz + d.siz):
+            conntinue = 0
             d.special(b)
-            if d.dmg > b.armr+itded:
-                itded=0
+            if d.dmg > b.armr+conntinue:
                 b.hploss(d.dmg - b.armr)
             d.H -= 1
             if d.H < 1:
@@ -401,15 +401,14 @@ class Drt(pygame.sprite.Sprite):
         depleted += 1
         drts.remove(d)
         del d
-itded=0
+conntinue=0
 class druidball(Drt):
-    global itded
     def __init__(self, X, Y, S, s, I, H, x, y, P, SPE, DMG=1, bounce=0, pierce=[0, 0]):
         super().__init__(X, Y, S, s, I, H, x, y, P, SPE, DMG, bounce)
         self.pierce = pierce
 
     def special(self, loss):
-        global depleted
+        global depleted,conntinue
         for c in range(len(self.SPE) // 2):
             if self.SPE[c * 2 - 2] == 2:
                 if self.pierce[0] < 1:
@@ -436,7 +435,7 @@ class druidball(Drt):
                     self.pierce[0] -= 1
                     self.H += 1
             elif self.SPE[c * 2 - 2] == 3:
-                if loss not in thorned and loss.ID > -9:
+                if loss not in thorned and loss.ID > -17:
                     thorned.append(loss)
                     loss.lists.append(thorned)
                     loss.spawn = []
@@ -444,10 +443,11 @@ class druidball(Drt):
                     loss.SX /= loss.S * 10
                     loss.S = 0.1
             elif self.SPE[c * 2 - 2] == 4:
-                if loss.ID<-17:
-                    deadnow=died
-                    loss.hploss(self.dmg*5)
-                    itded=1000000*(deadnow-dead)
+                if loss.ID<-16:
+                    loss.hploss(self.dmg*8)
+                else:
+                    loss.hploss(3)
+                conntinue = 100000000
 
 
 minemine = loadify('supermine')
@@ -668,7 +668,7 @@ class Bloon(pygame.sprite.Sprite):
         bloonlist()
         what = bloonlistcomplete[which]
         if int(what[2] + overkill) > 0:
-            if what[3] > -10:
+            if what[3] > -17:
                 what[0] += min(rn, 60) / 10
             # what = [speed,health,HH(wierdhelf),ID,spawn,EX,EY]
 
@@ -751,7 +751,7 @@ class Bloon(pygame.sprite.Sprite):
                 e.I = e.i[e.H - 1]
                 e.SX /= e.S
                 e.SY /= e.S
-                e.S =(bloonlistcomplete[e.H][0] +min(rn, 60) / 10)/5
+                e.S =(bloonlistcomplete[e.H-1][0] +min(rn, 60) / 10)/5
                 e.SX *= e.S
                 e.SY *= e.S
             else:
@@ -851,11 +851,11 @@ def bloonlist():
                          [10, 20 + rn / 6, 9, -5, [[5, 5]]],
                          [7, int(20 + rn / 12), 10, -6, [[4, 5]], 1],
 
-                         [18, 0.008*rn**2 + 50, rn + 80, -101, [[4, 10]]],
-                         [7, 0.16*rn**2 + 1000, rn * 15 + 1000, -100, [[4, 12]]],
-                         [7,0.026*rn**2 + 150,rn*10+150,-16,[[1,0]]],
-                         [5,0.26*rn**2 + 1500,rn*25+1500,-17,[[1,14]],-3],
-                         [6, 0.8*rn**2 + 4800, rn * 60 + 4800, -110, [[3, 12],[1,13]],0.9]]
+                         [13, 0.008*rn**2 + 50+rn, rn + 80, -101, [[4, 10]]],
+                         [7, 0.16*rn**2 + 900+rn*28, rn * 15 + 1000, -100, [[4, 12]]],
+                         [7,0.026*rn**2 + 250+rn*4,rn*10+150,-16,[[1,0]]],
+                         [5,0.26*rn**2 + 1500+rn*30,rn*25+1500,-17,[[1,14]],-3],
+                         [6, 0.8*rn**2 + 3800+rn*60, rn * 60 + 4800, -110, [[3, 12],[1,13]],0.9]]
 
     forms = [[0, 1, -2, [[2, 4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
              [10, 20, -5, [[5, 5]]], [7, int(20 + rn / 12), -6, [[4, 5]], 1]]
@@ -1034,7 +1034,7 @@ def sendbloon(stuff):
         # what is speed,health,HH,ID,spawn,armour,deathrattle
         bloonlist()
         what = bloonlistcomplete[stuff[1]]
-        if what[3] > -10:
+        if what[3] > -17:
             what[0] += min(rn, 60) / 10
         if len(stuff) > 3:
             sent = 0
@@ -1124,13 +1124,12 @@ def upgrade():
                 if 450 > XX[0] > 200:
                     if 350 > XX[1]:
                         cl = 0
-
-                if XX[0] > 1100:
-                    if 450 > XX[1]:
-                        if e.MID == 1:
-                            if e.F == 0:
-                                if money > 29:
-                                    for e in lvlup:
+                for e in lvlup:
+                    if XX[0] > 1100:
+                        if 450 > XX[1]:
+                            if e.MID == 1:
+                                if e.F == 0:
+                                    if money > 29:
                                         e.c = e.c / 2
                                         e.DS = e.DS * 2
                                         e.F = 1
@@ -1139,16 +1138,14 @@ def upgrade():
                                             e.I = loadify('drtmonkS')
                                             e.ID = loadify('drtS')
                                         cl = 0
-                            elif e.F == 1:
-                                if money > 99:
-                                    for e in lvlup:
+                                elif e.F == 1:
+                                    if money > 99:
                                         e.F = 2
                                         money -= 100
                                         e.Q = 2
                                         cl = 0
-                            elif e.F == 2 and e.f < 3:
-                                if money > 109:
-                                    for e in lvlup:
+                                elif e.F == 2 and e.f < 3:
+                                    if money > 109:
                                         e.DS += 10
                                         e.F = 3
                                         money -= 110
@@ -1156,9 +1153,8 @@ def upgrade():
                                         e.I = loadify('cyborg')
                                         e.P = [80, 1, 1]
                                         cl = 0
-                            elif e.F == 3 and e.f < 3:
-                                if money > 399:
-                                    for e in lvlup:
+                                elif e.F == 3 and e.f < 3:
+                                    if money > 399:
                                         e.F = 4
                                         money -= 400
                                         e.ID = loadify('drtbomb')
@@ -1168,10 +1164,9 @@ def upgrade():
                                         e.SPX.append([e.c, 1])
                                         cl = 0
 
-                        elif e.MID == 2:
-                            if e.F == 0:
-                                if money > 49:
-                                    for e in lvlup:
+                            elif e.MID == 2:
+                                if e.F == 0:
+                                    if money > 49:
                                         e.F = 1
                                         if e.I == enginer:
                                             e.I = loadify('engineer2')
@@ -1179,9 +1174,8 @@ def upgrade():
                                         money -= 50
                                         e.Q = 2
                                         cl = 0
-                            elif e.F == 1:
-                                if money > 169:
-                                    for e in lvlup:
+                                elif e.F == 1:
+                                    if money > 169:
                                         e.F = 2
                                         e.I = loadify('grmn')
                                         e.MI = loadify('tureetb')
@@ -1190,23 +1184,20 @@ def upgrade():
                                         money -= 170
                                         cl = 0
 
-                        elif e.MID == 3:
-                            if e.F == 0:
-                                if money > 69:
-                                    for e in lvlup:
+                            elif e.MID == 3:
+                                if e.F == 0:
+                                    if money > 69:
                                         e.F = 1
                                         e.c /= 2
                                         money -= 70
                                         cl = 0
-                            elif e.F == 1:
-                                if money > 74:
-                                    for e in lvlup:
+                                elif e.F == 1:
+                                    if money > 74:
                                         e.F = 2
                                         money -= 75
                                         cl = 0
-                            elif e.F == 2:
-                                if money > 299:
-                                    for e in lvlup:
+                                elif e.F == 2:
+                                    if money > 299:
                                         e.F = 3
                                         money -= 300
                                         inheriter=inheritor(random.randint(0,2),1+(e.LS-800)/1800,3)
@@ -1214,10 +1205,9 @@ def upgrade():
                                         facinherit.append(inheriter)
                                         inheriter.lists.append(facinherit)
                                         cl = 0
-                        elif e.MID == 4:
-                            if e.F == 0:
-                                if money > 199:
-                                    for e in lvlup:
+                            elif e.MID == 4:
+                                if e.F == 0:
+                                    if money > 199:
                                         if e.f < 2:
                                             e.I = loadify('double')
                                         else:
@@ -1225,9 +1215,8 @@ def upgrade():
                                         e.F = 1
                                         money -= 200
                                         cl = 0
-                            elif e.F == 1:
-                                if money > 199:
-                                    for e in lvlup:
+                                elif e.F == 1:
+                                    if money > 199:
                                         if e.f < 2:
                                             e.I = loadify("triple")
                                         else:
@@ -1236,9 +1225,8 @@ def upgrade():
                                         e.F = 2
                                         money -= 200
                                         cl = 0
-                            elif e.F == 2:
-                                if money > 4499:
-                                    for e in lvlup:
+                                elif e.F == 2:
+                                    if money > 4499:
                                         if e.f < 2:
                                             e.I = loadify('tank')
                                         else:
@@ -1252,21 +1240,21 @@ def upgrade():
                                         e.c /= 1.5
                                         money -= 4500
                                         cl = 0
-                        elif e.MID == 5:
-                            if e.F == 0:
-                                if money > 39:
-                                    for e in lvlup:
+                            elif e.MID == 5:
+                                if e.F == 0:
+                                    if money > 39:
                                         e.H += 10
                                         money -= 40
-                                        if e.f == 0:
+                                        if e.f == 3:
+                                            e.I = loadify('shadodruid2')
+                                        elif e.f == 0:
                                             e.I = loadify('druid2')
                                         elif e.f == 1:
                                             e.I = loadify('druid3')
                                         e.F = 1
                                         cl = 0
-                            elif e.F == 1:
-                                if money > 379:
-                                    for e in lvlup:
+                                elif e.F == 1:
+                                    if money > 379:
                                         money -= 380
                                         e.DS += 1
                                         e.D /= 1.2
@@ -1274,16 +1262,17 @@ def upgrade():
                                         for y in range(len(e.SPE)):
                                             if e.SPE[y - 1] == 2:
                                                 e.SPE[y] += 0.2
-                                        if e.f == 0:
+                                        if e.f == 3:
+                                            e.I = loadify('shadodruid3')
+                                        elif e.f == 0:
                                             e.I = loadify('druid5')
                                         else:
                                             e.I = loadify('druid6')
                                         e.F = 2
                                         cl = 0
-                        elif e.MID == 6:
-                            if e.F == 0:
-                                if money > 59:
-                                    for e in lvlup:
+                            elif e.MID == 6:
+                                if e.F == 0:
+                                    if money > 59:
                                         e.U = 5
                                         e.power=1
                                         e.blow*=1.5
@@ -1292,56 +1281,55 @@ def upgrade():
                                         e.I = blow
                                         e.F = 1
                                         cl = 0
-                    elif 900 > XX[1]:
-                        if e.MID == 1:
-                            if e.f == 0:
-                                if money > 39:
-                                    e.f = 1
-                                    money -= 40
-                                    e.dmg += 1
-                                    cl = 0
-                            elif e.f == 1:
-                                if money > 39:
-                                    e.c = e.c + 2
-                                    if e.F > 0:
-                                        e.DS /=2
-                                    e.DS -= 5
-                                    if e.DS < 2:
-                                        e.c = 10000000
-                                    if e.F > 0:
-                                        e.DS *=2
-                                    e.H += +2
-                                    e.f = 2
-                                    money -= 40
-                                    if e.F < 3:
-                                        e.I = loadify('beefdrtmonk')
-                                        e.ID = loadify('beefdrt')
-                                    cl = 0
-                            elif e.f == 2 and e.F < 3:
-                                if money > 99:
-                                    for r in range(9):
-                                        r += 1
+                        elif 900 > XX[1]:
+                            if e.MID == 1:
+                                if e.f == 0:
+                                    if money > 39:
+                                        e.f = 1
+                                        money -= 40
+                                        e.dmg += 1
+                                        cl = 0
+                                elif e.f == 1:
+                                    if money > 39:
+                                        e.c = e.c + 2
                                         if e.F > 0:
-                                            r *= 2
-                                        if r * 1.5 < e.DS:
-                                            e.H += 1
+                                            e.DS /=2
+                                        e.DS -= 5
+                                        if e.DS < 2:
+                                            e.c = 10000000
+                                        if e.F > 0:
+                                            e.DS *=2
+                                        e.H += +2
+                                        e.f = 2
+                                        money -= 40
+                                        if e.F < 3:
+                                            e.I = loadify('beefdrtmonk')
+                                            e.ID = loadify('beefdrt')
+                                        cl = 0
+                                elif e.f == 2 and e.F < 3:
+                                    if money > 99:
+                                        for r in range(9):
+                                            r += 1
+                                            if e.F > 0:
+                                                r *= 2
+                                            if r * 1.5 < e.DS:
+                                                e.H += 1
+                                            else:
+                                                break
+                                        if e.F > 0:
+                                            e.DS += 4
                                         else:
-                                            break
-                                    if e.F > 0:
-                                        e.DS += 4
-                                    else:
-                                        e.DS += 2
-                                    e.H += 3
-                                    e.f = 3
-                                    money -= 100
-                                    e.ID = loadify('beefyerdrt')
-                                    e.I = loadify('gorrila')
-                                    cl = 0
+                                            e.DS += 2
+                                        e.H += 3
+                                        e.f = 3
+                                        money -= 100
+                                        e.ID = loadify('beefyerdrt')
+                                        e.I = loadify('gorrila')
+                                        cl = 0
 
-                        elif e.MID == 2:
-                            if e.f == 0:
-                                if money > 49:
-                                    for e in lvlup:
+                            elif e.MID == 2:
+                                if e.f == 0:
+                                    if money > 49:
                                         e.f = 1
                                         money -= 50
                                         e.c -= e.c / 2.5
@@ -1349,9 +1337,8 @@ def upgrade():
                                         if e.I == enginer:
                                             e.I = loadify('engineer2')
                                         cl = 0
-                            elif e.f == 1:
-                                if money > 79:
-                                    for e in lvlup:
+                                elif e.f == 1:
+                                    if money > 79:
                                         e.f = 2
                                         money -= 80
                                         e.I = loadify('time')
@@ -1359,78 +1346,75 @@ def upgrade():
                                         e.SPE = [1, 1]
                                         cl = 0
 
-                        elif e.MID == 3:
-                            if e.f == 0:
-                                if money > 249:
-                                    for e in lvlup:
+                            elif e.MID == 3:
+                                if e.f == 0:
+                                    if money > 249:
                                         e.f = 1
                                         money -= 250
                                         e.P = [35, 1, 1]
                                         e.ID = loadify('mineS')
                                         e.Dmg += 1
                                         cl = 0
-                            elif e.f == 1:
-                                if money > 999:
-                                    for e in lvlup:
+                                elif e.f == 1:
+                                    if money > 999:
                                         e.f = 2
                                         money -= 1000
                                         cl = 0
                                         e.G = 0
 
-                        elif e.MID == 4:
-                            if e.f == 0:
-                                if money > 299:
-                                    g = pygame.Surface.get_size(e.ID)
-                                    e.ID = pygame.transform.smoothscale(e.ID, (int(g[0] * 1.2), int(g[1] * 1.2)))
-                                    money -= 300
-                                    e.f += 1
-                                    e.H += 1
-                                    e.c *= 1.2
-                                    if e.DS > 7:
-                                        e.dmg += 1
-                                    e.DS /= 1.2
-                                    cl = 0
-                            elif e.f == 1:
-                                if money > 399:
-                                    if e.F == 0:
-                                        e.I = loadify("gunnerwide")
-                                    elif e.F == 1:
-                                        e.I = loadify("doublewide")
-                                    elif e.F == 2:
-                                        e.I = loadify("triplewide")
-                                    elif e.F == 3:
+                            elif e.MID == 4:
+                                if e.f == 0:
+                                    if money > 299:
+                                        g = pygame.Surface.get_size(e.ID)
+                                        e.ID = pygame.transform.smoothscale(e.ID, (int(g[0] * 1.2), int(g[1] * 1.2)))
+                                        money -= 300
+                                        e.f += 1
+                                        e.H += 1
+                                        e.c *= 1.2
+                                        if e.DS > 7:
+                                            e.dmg += 1
+                                        e.DS /= 1.2
+                                        cl = 0
+                                elif e.f == 1:
+                                    if money > 399:
+                                        if e.F == 0:
+                                            e.I = loadify("gunnerwide")
+                                        elif e.F == 1:
+                                            e.I = loadify("doublewide")
+                                        elif e.F == 2:
+                                            e.I = loadify("triplewide")
+                                        elif e.F == 3:
 
-                                        e.I = loadify("tankwide")
-                                    money -= 400
-                                    e.f += 1
-                                    e.DS *= 1.2
-                                    e.c /= 1.5
-                                    cl = 0
+                                            e.I = loadify("tankwide")
+                                        money -= 400
+                                        e.f += 1
+                                        e.DS *= 1.2
+                                        e.c /= 1.5
+                                        cl = 0
 
-                            elif e.f == 2 and e.F<3:
-                                if money > 1999:
+                                elif e.f == 2 and e.F<3:
+                                    if money > 1999:
 
-                                    e.I = loadify("gunnerjugger")
-                                    e.ID = loadify("juggerdrt")
-                                    money -= 2000-e.F*200
-                                    e.c = e.c/e.DS*38
-                                    e.DS = e.DS - 2
-                                    if e.DS < 5:
-                                        e.c = 10000000
-                                    e.H += 13
-                                    e.dmg+=13
-                                    e.f = 3
-                                    e.F=-1
-                                    e.f += 1
-                                    e.DS *= 1.2
-                                    e.c /= 1.5
-                                    cl = 0
+                                        e.I = loadify("gunnerjugger")
+                                        e.ID = loadify("juggerdrt")
+                                        money -= 2000-e.F*200
+                                        e.c = e.c/e.DS*38
+                                        e.DS = e.DS - 2
+                                        if e.DS < 5:
+                                            e.c = 10000000
+                                        e.H += 10
+                                        e.dmg+=10
+                                        e.f = 3
+                                        e.F=-1
+                                        e.f += 1
+                                        e.DS *= 1.2
+                                        e.c /= 1.5
+                                        cl = 0
 
 
-                        elif e.MID == 5:
-                            if e.f == 0:
-                                if money > 49:
-                                    for e in lvlup:
+                            elif e.MID == 5:
+                                if e.f == 0:
+                                    if money > 49:
                                         e.f = 1
                                         money -= 50
                                         e.SPE.append(3)
@@ -1445,26 +1429,31 @@ def upgrade():
                                         e.pierce = [1, 1]
                                         e.H += 1
                                         cl = 0
-                            elif e.f == 1:
-                                if money > 89:
-                                    for e in lvlup:
+                                elif e.f == 1:
+                                    if money > 89:
                                         e.f = 2
                                         money -= 90
                                         e.bounce += 4
                                         cl = 0
-                            elif e.f == 1:
-                                if money > 90:
-                                    for e in lvlup:
-                                        e.SPE.append(3)
+                                elif e.f == 2:
+                                    if money > 749:
+                                        e.SPE.remove(3)
+                                        e.SPE.remove(0)
+                                        e.SPE.append(4)
                                         e.SPE.append(0)
-                                        e.f = 2
+                                        if e.F == 0:
+                                            e.I = loadify('shadodruid')
+                                        elif e.F == 1:
+                                            e.I = loadify('shadodruid2')
+                                        elif e.F == 2:
+                                            e.I = loadify('shadodruid3')
+                                        e.f = 3
                                         money -= 90
                                         e.bounce += 2
                                         cl = 0
-                        elif e.MID == 6:
-                            if e.f == 0:
-                                if money > 49:
-                                    for e in lvlup:
+                            elif e.MID == 6:
+                                if e.f == 0:
+                                    if money > 49:
                                         e.f = 1
                                         money -= 50
                                         drtmonks.append(e)
@@ -1473,9 +1462,8 @@ def upgrade():
                                         e.c=15*(e.rang**2)/25000
                                         e.price+=40
                                         cl = 0
-                            elif e.f == 1:
-                                if money > 399:
-                                    for e in lvlup:
+                                elif e.f == 1:
+                                    if money > 399:
                                         e.f = 2
                                         money -= 400
                                         e.Q+=3
@@ -1485,9 +1473,8 @@ def upgrade():
                                         e.COOL=-10000
                                         e.price+=300
                                         cl = 0
-                            elif e.f == 2:
-                                if money > 2499:
-                                    for e in lvlup:
+                                elif e.f == 2:
+                                    if money > 2499:
                                         e.f = 3
                                         money -= 2500
                                         e.Q=1
@@ -1499,8 +1486,7 @@ def upgrade():
                                         e.H+=6
                                         e.price+=1900
                                         cl = 0
-                    else:
-                        for e in lvlup:
+                        else:
                             money += price
                             if e.MID == 1:
                                 drtmonks.remove(e)
@@ -1612,8 +1598,10 @@ def menuAB(MT, UPGNUM, PGNUM):
     if MT == 5:
         if PGNUM == 0:
             screen.blit(loadify('brambles'), (1100, 450))
-        if PGNUM == 1:
+        elif PGNUM == 1:
             screen.blit(loadify('bouncy'), (1100, 450))
+        elif PGNUM == 2:
+            screen.blit(loadify('shadowcore'), (1100, 450))
     if MT == 6:
         if PGNUM == 0:
             screen.blit(loadify('nailing'), (1100, 450))
@@ -2424,9 +2412,9 @@ while running:
     ti += 1
     for e in drtmonks:
         if e.LS == ti:
-            e.kill()
             drtmonks.remove(e)
             drtmunks.remove(e)
+            e.kill()
             del e
 
     for e in drts2:
