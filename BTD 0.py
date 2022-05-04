@@ -1456,6 +1456,7 @@ def upgrade():
                                     if money > 49:
                                         e.f = 1
                                         money -= 50
+                                        e.rang += 350-e.rang // 2
                                         drtmonks.append(e)
                                         e.i=nailmonk[0]
                                         e.I = nailmonk[0]
