@@ -900,7 +900,7 @@ class wizedrt(Drt):
     def special(self, loss):
         for c in self.SPE:
             if c[0] == 1:
-                if loss not in burning and c.ID > -17:
+                if loss not in burning and loss.ID > -17:
                     burning.append(loss)
                     loss.lists.append(burning)
                     loss.firetick = [0, c[1][1]]
@@ -950,7 +950,7 @@ class wizard(drtmonkey):
         self.MID = 7
         self.locked=[10,10]
         self.rang=range
-        self.price = 35
+        self.price = 70
         self.XX = self.X
         self.YY = self.Y
     def attack(m):
