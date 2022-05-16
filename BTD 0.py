@@ -1754,9 +1754,11 @@ def upgrade():
                                             e.zaprange = e.rang // 2
                                             e.zapdamage = 2+e.DS/5
                                             e.zapamount = e.H
+                                            e.price += 600
                                             e.I = loadify('wizard02')
                                             cl = 0
                         else:
+                            money+=e.price
                             if e.MID == 1:
                                 drtmonks.remove(e)
                                 drtmunks.remove(e)
@@ -1775,6 +1777,8 @@ def upgrade():
                             elif e.MID == 7:
                                 drtmunks.remove(e)
                                 wizes.remove(e)
+                                if e in stormwizes:
+                                    stormwizes.remove(e)
                             e.kill()
                             monks.remove(e)
                             del e
