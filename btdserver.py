@@ -29,12 +29,12 @@ class player_channel(Channel):
 
     def Network_start(self,data):
         global players
-        if len(players)<3 and mapchosen==0:
+        if mapchosen==0:
             newplayer = player()
             players.append(newplayer)
             self.Send({"action": "gitplayer", "id": len(players)})
         else:
-            self.Send({"action": "gitplayer", "id": 10})
+            self.Send({"action": "gitplayer", "id": 100000})
 
     def Network_send(self, data):
         for channel in self.server.all_channels:
@@ -148,7 +148,7 @@ def rnd(b):
         rn+=1
     ch = 5
     regrow = random.choice([0, 1])
-    if rn > 75:
+    if rn > 60:
         ch = random.randint(10, 16)
         if ch > 12:
             if ch>14:

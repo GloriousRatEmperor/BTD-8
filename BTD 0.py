@@ -1,5 +1,4 @@
 import pyglet
-import numpy as np
 import random
 import pygame
 import math
@@ -22,7 +21,7 @@ class MyNetworkListener(ConnectionListener):
 
     def Network_gitplayer(self, data):
         global me
-        if data["id"] < 4:
+        if data["id"] < 10000:
             me = player(data["id"])
         else:
             print(data["id"])
@@ -87,6 +86,7 @@ growbloon = []
 money = 101
 pas = time.time()
 bloons = []
+bloonsappend=bloons.append
 lvlup = []
 monks = []
 animations = []
@@ -96,6 +96,7 @@ enginer = loadify('engineer')
 gunI = loadify('guner')
 wata = loadify('water')
 blns = []
+blnsappend=blns.append
 mines = []
 sqares = []
 sqaresize = 100
@@ -124,6 +125,7 @@ class drtmonkey(pygame.sprite.Sprite):
         self.rang=range
         self.Q = 1
         self.MID = 1
+        self.locked=[10,10]
         self.LS = LS
         self.dmg = 1
         self.ID = ID
@@ -147,6 +149,8 @@ class leafblower(drtmonkey):
     def __init__(self,X, Y, I, f, F, DS, H, c, ID, LS, P, SPE,blow,range):
         super().__init__( X, Y, I, f, F, DS, H, c, ID, LS, P, SPE)
         self.MID = 6
+
+        self.locked = [10, 10]
         self.i=I
         self.U=1
         self.rang=range
@@ -158,6 +162,9 @@ class leafblower(drtmonkey):
         self.XX = self.X-self.ss[0]//2
         self.YY = self.Y-self.ss[1]//2
 
+wizes=[]
+
+
 class gunner(pygame.sprite.Sprite):
     def __init__(self, X, Y, I, f, F, DS, c, ID, H, P, SPE):
         super(gunner, self).__init__()
@@ -165,6 +172,7 @@ class gunner(pygame.sprite.Sprite):
         self.c = c
         self.dmg = 2
         self.MID = 4
+        self.locked = [10, 10]
         self.price = 225
         self.H = H
         self.ID = ID
@@ -219,6 +227,7 @@ class factory(pygame.sprite.Sprite):
         super(factory, self).__init__()
         monks.append(self)
         self.MID = 3
+        self.locked = [10, 10]
         self.ID = ID
         self.H = H
         self.LS = LS
@@ -280,6 +289,7 @@ class engin(pygame.sprite.Sprite):
         self.SPE = SPE
         self.price = 69
         self.MID = 2
+        self.locked = [10, 10]
         self.ID = ID
         self.MC = MC
         self.MI = MI
@@ -315,14 +325,8 @@ class Drt(pygame.sprite.Sprite):
         self.SPX = Specialonexplosion
         self.IM = 0
         self.I = I
-        if xS == 0:
-            spdx = b.DS
-            spdy = 0
-        else:
-            spdx = b.DS / math.sqrt(yS ** 2 / xS ** 2 + 1)
-            if xS < 0:
-                spdx *= -1
-            spdy = spdx * yS / xS
+        spdx = S
+        spdy = s
         if spdx == 0:
             if spdy < 0:
                 self.a = pygame.transform.rotate(self.I, -90)
@@ -679,9 +683,9 @@ class Bloon(pygame.sprite.Sprite):
             newbloon = Bloon(self.X + random.randint(-70, 70), self.Y + random.randint(-70, 70), (what[0]) / 5
                              , what[1], self.f
                              , self.r, what[3], self.h, what[2], what[4], armour, 0, self.made)
-            bloons.append(newbloon)
+            bloonsappend(newbloon)
             newbloon.lists.append(bloons)
-            blns.append(newbloon)
+            blnsappend(newbloon)
             newbloon.lists.append(blns)
             if self in burning:
                 burning.append(newbloon)
@@ -801,7 +805,7 @@ class Timexplod(pygame.sprite.Sprite):
             if distanceB(c.X, c.Y, s.X, s.Y, s.rang + c.siz+100):
                 for r in range(len(s.SPE) // 2):
                     if s.SPE[r * 2 - 2] == 4:
-                        if c not in burning and c.ID > -19:
+                        if c not in burning and c.ID > -17:
                             burning.append(c)
                             c.lists.append(burning)
                             c.firetick = [0, s.SPE[r * 2 - 1][0]]
@@ -820,9 +824,9 @@ class delaybloon(Bloon):
         global bloons,bloondelay
         self.X = blntrac[0]
         self.x = blntrac[0]
-        bloons.append(self)
+        bloonsappend(self)
         self.lists.append(bloons)
-        blns.append(self)
+        blnsappend(self)
         self.lists.append(blns)
         bloondelay.remove(self)
 
@@ -865,6 +869,7 @@ class Druid(pygame.sprite.Sprite):
         super(Druid, self).__init__()
         monks.append(self)
         self.MID = 5
+        self.locked = [10, 10]
         self.c = c
         self.DS = DS
         self.C = ti
@@ -885,6 +890,238 @@ class Druid(pygame.sprite.Sprite):
         self.pierce = [0, 0]
         self.P = [0]
         self.dmg = 3
+
+
+class wizedrt(Drt):
+    def __init__(self, X, Y, S, s, I, H, x, y, P, SPE, DMG, bounce, Specialonexplosion):
+        super().__init__(X, Y, S, s, I, H, x, y, P, SPE, DMG, bounce)
+        self.SPX = Specialonexplosion
+
+    def special(self, loss):
+        for c in self.SPE:
+            if c[0] == 1:
+                if loss not in burning and c.ID > -17:
+                    burning.append(loss)
+                    loss.lists.append(burning)
+                    loss.firetick = [0, c[1][1]]
+                    loss.firedmg = c[1][0]
+
+    def xplod(d):
+        timexplod.append(Timexplod(d.P[1], d.P[0], d.SPX, d.x + d.V, d.y + d.C, d.P[2], d.P[0]))
+
+    def atack(d, b):
+        global conntinue
+        if distanceB(b.X, b.Y - 10, d.X + 5, d.Y + 5, 20 + b.siz + d.siz):
+            conntinue = 0
+            d.special(b)
+            if d.dmg > b.armr + conntinue:
+                b.hploss(d.dmg - b.armr)
+            d.H -= 1
+            if d.H < 1:
+                if d.P[0] > 0:
+                    d.xplod()
+                d.die()
+
+    def die(d):
+        global depleted, sqares2, drts
+        for r in d.sqares:
+            r.remove(d)
+        d.kill()
+        depleted += 1
+        drts.remove(d)
+        del d
+lightninin=loadify('bluray')
+blustop=loadify('blustop')
+# while True:
+#
+#     dis=random.randint(1,1000)
+#     width = random.randint(1, 1000)
+#     norotl = pygame.transform.smoothscale(lightninin, (
+#         dis, width))
+#
+#     a=random.randint(-18000,18000)
+#     a/=18000
+#     print(a)
+#     lightnin = pygame.transform.rotate(norotl, a)
+
+class wizard(drtmonkey):
+    def __init__(self,X, Y, I, f, F, DS, H, c, ID, LS, P, SPE,range):
+        super().__init__( X, Y, I, f, F, DS, H, c, ID, LS, P, SPE)
+        self.MID = 7
+        self.locked=[10,10]
+        self.rang=range
+        self.price = 35
+        self.XX = self.X
+        self.YY = self.Y
+    def attack(m):
+        global rel
+        if (ti - m.C) > m.c:
+            rel = 0
+            for e in bloons:
+                if distanceB(e.X, e.Y, m.X+m.ss[0]//2, m.Y+m.ss[1]//2, m.rang + e.siz):
+                    m.C = ti
+                    xS = (e.X) - (m.X + pliesX)
+                    yS = (e.Y) - (m.Y + pliesY)
+                    if xS == 0:
+                        spdx = m.DS
+                        spdy = 0
+                    else:
+                        spdx = m.DS / math.sqrt(yS ** 2 / xS ** 2 + 1)
+                        if xS < 0:
+                            spdx *= -1
+                        spdy = spdx * yS / xS
+
+                    drts.append(wizedrt(m.X + pliesX, m.Y + pliesY, spdx, spdy, m.ID, m.H, 0, 0, m.P, m.SPE, m.dmg, 0,
+                                    [e for e in m.SPX]))
+                    rel += 1
+                    if rel == m.Q:
+                        break
+    def fireattack(m):
+        global rel
+        if (ti - m.C) > m.c:
+            rel = 0
+            for e in bloons:
+                if distanceB(e.X, e.Y, m.X+m.ss[0]//2, m.Y+m.ss[1]//2, m.rang + e.siz):
+                    m.C = ti
+                    xS = (e.X) - (m.X + pliesX)
+                    yS = (e.Y) - (m.Y + pliesY)
+                    if xS == 0:
+                        spdx = m.DS
+                        spdy = 0
+                    else:
+                        spdx = m.DS / math.sqrt(yS ** 2 / xS ** 2 + 1)
+                        if xS < 0:
+                            spdx *= -1
+                        spdy = spdx * yS / xS
+                    firesize=random.randint(1,m.H)
+
+                    drts.append(wizedrt(m.X + pliesX, m.Y + pliesY, spdx, spdy, pygame.transform.smoothscale(m.ID,(int(148*math.sqrt(firesize)),int(59*math.sqrt(firesize)))), m.H, 0, 0, [m.P[0]*math.sqrt(firesize),m.P[1]*math.sqrt(firesize),m.P[2]], m.SPE, m.dmg*firesize, 0,
+                                    [e for e in m.SPX]))
+                    rel += 1
+                    if rel == m.Q:
+                        break
+
+    def storm(m):
+        global lightninin,tempimages
+        powah=random.randint(-6000,100)
+        if powah>70:
+            forked=[]
+            for p in bloons:
+                if distanceB(p.X, p.Y, m.X+m.ss[0]//2, m.Y+m.ss[1]//2, m.rang//2 + p.siz):
+                    for d in range(int(1 + (
+                            min((int((p.X + m.zaprange) // sqaresize), maxsqare)) - int(max(p.X - m.zaprange, 0) // sqaresize)))):
+                        for i in range(int(1 + (
+                                min(int((p.Y + m.zaprange) // sqaresize), 11) - int(max(p.Y - m.zaprange, 0) // sqaresize)))):
+
+                            skuare=sqares[int((max(e.X - m.zaprange, 0) + d * sqaresize) // sqaresize + (max(p.Y - m.zaprange, 0) + i * sqaresize) // sqaresize * maxsqare) - 1]
+                            for g in random.sample(skuare,min(m.zapamount//2+1,len(skuare))):
+                                if g not in forked:
+                                    forked.append(g)
+
+                    lastbing=[m.X+m.ss[0]//2, m.Y+m.ss[1]//2]
+                    last=[]
+                    for n in forked:
+                        if int(distanceC(n.X, n.Y, lastbing[0],lastbing[1])) > 0:
+                            # stoop = pygame.transform.smoothscale(blustop, int(140 + 140 *powah//80 *zapdamage // 28),
+                            #                                          int(140 + 140 *powah//80* zapdamage // 28))
+                            # images.append(Image(stoop, n.X, n.Y))
+                            xS = n.X - lastbing[0]
+                            yS = n.Y - lastbing[1]
+                            #lastbing[0]=blntrac[len(blntrac) - 4] #n.X = blntrac[len(blntrac) - 2]
+                            if xS == 0:
+                                spdx = 100
+                                spdy = 0
+                            else:
+                                spdx = 100 / math.sqrt(yS ** 2 / xS ** 2 + 1)
+                                if xS < 0:
+                                    spdx *= -1
+                                spdy = spdx * yS / xS
+                            width=int(2*(powah-60))
+                            norotl = pygame.transform.smoothscale(lightninin, (
+                                int(distanceC(n.X, n.Y, lastbing[0],
+                                              lastbing[1])), width))
+
+                            if spdx == 0:
+                                if spdy < 0:
+                                    lightnin = pygame.transform.rotate(norotl, -90)
+                                else:
+                                    lightnin = pygame.transform.rotate(norotl, 90)
+                                extray = width//2
+                            elif spdx > 0:
+                                lightnin = pygame.transform.rotate(norotl, -math.atan(spdy / spdx) * 180 / math.pi)
+                            else:
+                                lightnin = pygame.transform.rotate(norotl, 180 - math.atan(spdy / spdx) * 180 / math.pi)
+
+                            if spdx * spdy > 0:
+                                extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * width//2
+                                extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * width//2
+                            elif spdx * spdy < 0:
+                                extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * width//2
+                                extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * width//2
+                            if xS < 0:
+                                ximg = n.X
+                            else:
+                                ximg = lastbing[0]
+                            if yS < 0:
+                                yimg = n.Y
+                            else:
+                                yimg = lastbing[1]
+
+                            # xS = n.X - lastbing[0]
+                            # yS = n.Y - lastbing[1]
+                            # if xS == 0:
+                            #     spdx = 100
+                            #     spdy = 0
+                            # else:
+                            #     spdx = 100 / math.sqrt(yS ** 2 / xS ** 2 + 1)
+                            #     if xS < 0:
+                            #         spdx *= -1
+                            #     spdy = spdx * yS / xS
+                            #
+                            # width=int(1.5*(powah-50))
+                            #
+                            # lightori = pygame.transform.smoothscale(lightninin, (
+                            #     int(distanceC(blntrac[len(blntrac) - 2], blntrac[len(blntrac) - 1],
+                            #                   blntrac[len(blntrac) - 4],
+                            #                   blntrac[len(blntrac) - 3])), width))
+                            #
+                            # if spdx == 0:
+                            #     if spdy < 0:
+                            #         newpath = pygame.transform.rotate(newpathh, -90)
+                            #     else:
+                            #         newpath = pygame.transform.rotate(newpathh, 90)
+                            #     extray = 0
+                            #     extrax = 70
+                            # elif spdx > 0:
+                            #     newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
+                            # else:
+                            #     newpath = pygame.transform.rotate(newpathh, 180 - math.atan(spdy / spdx) * 180 / math.pi)
+                            #
+                            # if spdx * spdy > 0:
+                            #     extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+                            #     extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * 70
+                            # elif spdx * spdy < 0:
+                            #     extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+                            #     extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * 70
+                            # if xS < 0:
+                            #     ximg = blntrac[len(blntrac) - 2]
+                            # else:
+                            #     ximg = blntrac[len(blntrac) - 4]
+                            # if yS < 0:
+                            #     yimg = blntrac[len(blntrac) - 1]
+                            # else:
+                            #     yimg = blntrac[len(blntrac) - 3]
+
+                            tempimages2.append(tempimage(lightnin, ximg - extrax, yimg - extray,5+ti))
+                            lastbing = [n.X , n.Y ]
+                        # elif n==last:
+                        #     p rint('identicul')
+                        # elif int(distanceC(n.X, n.Y, lastbing[0],lastbing[1]))<0:
+                        #     p rint('WHAT')
+                        n.hploss((powah-60)*m.zapdamage/20)
+
+                    forked=[]
+
 
 
 def drtM():
@@ -1025,7 +1262,7 @@ bossH = 0
 bossX = 0
 bossY = 0
 bloondelay=[]
-
+stormwizes=[]
 def arrivetime(thing):
     return thing.X
 def sendbloon(stuff):
@@ -1064,8 +1301,8 @@ def sendbloon(stuff):
         stopround = 0
         bloonmade=Bloon(50, 150, 1, 1, 1, 0, 1, 1, 0)
         bloonmade.lists.append(bloons)
-        bloons.append(bloonmade)
-        blns.append(bloonmade)
+        bloonsappend(bloonmade)
+        blnsappend(bloonmade)
         bloonmade.lists.append(blns)
 
 
@@ -1091,6 +1328,8 @@ speeed = 0
 hippo = 0
 heredy = 0
 headers = {'Content-type': 'application/json'}
+firethrow=loadify('fire')
+
 
 
 def ready():
@@ -1107,13 +1346,15 @@ def ready():
 cl = 1
 blow=loadify('leafblowah')
 nailmonk=[loadify('blownail'),loadify('crowdnail'),loadify('blowfire')]
-firethrow=loadify('fire')
+
+fireball=loadify('fireball')
+
 def upgrade():
     global cl, price, lvlup, drtmonks, money, druids,blow
     cl = 1
     menu()
     for e in lvlup:
-        menuAB(e.MID, e.F, e.f)
+        menuAB(e.MID, e.F, e.f,e.locked)
         sell(e.price)
 
     pygame.display.update()
@@ -1127,368 +1368,395 @@ def upgrade():
                 for e in lvlup:
                     if XX[0] > 1100:
                         if 450 > XX[1]:
-                            if e.MID == 1:
-                                if e.F == 0:
-                                    if money > 29:
-                                        e.c = e.c / 2
-                                        e.DS = e.DS * 2
-                                        e.F = 1
-                                        money -= 30
-                                        if e.f < 2:
-                                            e.I = loadify('drtmonkS')
-                                            e.ID = loadify('drtS')
-                                        cl = 0
-                                elif e.F == 1:
-                                    if money > 99:
-                                        e.F = 2
-                                        money -= 100
-                                        e.Q = 2
-                                        cl = 0
-                                elif e.F == 2 and e.f < 3:
-                                    if money > 109:
-                                        e.DS += 10
-                                        e.F = 3
-                                        money -= 110
-                                        e.ID = loadify('drtex')
-                                        e.I = loadify('cyborg')
-                                        e.P = [80, 1, 1]
-                                        cl = 0
-                                elif e.F == 3 and e.f < 3:
-                                    if money > 399:
-                                        e.F = 4
-                                        money -= 400
-                                        e.ID = loadify('drtbomb')
-                                        e.I = loadify('bombsuit')
-                                        e.P = [160, 1, 1]
-                                        e.SPX.append(4)
-                                        e.SPX.append([e.c, 1])
-                                        cl = 0
+                            if e.locked[0]>e.F:
+                                if e.MID == 1:
+                                    if e.F == 0:
+                                        if money > 29:
+                                            e.c = e.c / 2
+                                            e.DS = e.DS * 2
+                                            e.F += 1
+                                            money -= 30
+                                            if e.f < 2:
+                                                e.I = loadify('drtmonkS')
+                                                e.ID = loadify('drtS')
+                                            cl = 0
+                                    elif e.F == 1:
+                                        if money > 99:
+                                            e.F += 1
+                                            money -= 100
+                                            e.Q = 2
+                                            cl = 0
+                                    elif e.F == 2:
+                                        if money > 109:
+                                            e.DS += 10
+                                            e.F += 1
+                                            money -= 110
+                                            e.ID = loadify('drtex')
+                                            e.I = loadify('cyborg')
+                                            e.P = [80, 1, 1]
+                                            cl = 0
+                                    elif e.F == 3:
+                                        if money > 399:
+                                            e.F += 1
+                                            money -= 400
+                                            e.ID = loadify('drtbomb')
+                                            e.I = loadify('bombsuit')
+                                            e.P = [160, 1, 1]
+                                            e.SPX.append(4)
+                                            e.SPX.append([e.c, 1])
+                                            e.locked[1] =2
+                                            cl = 0
 
-                            elif e.MID == 2:
-                                if e.F == 0:
-                                    if money > 49:
-                                        e.F = 1
-                                        if e.I == enginer:
-                                            e.I = loadify('engineer2')
-                                            e.MI = loadify('turret2b')
-                                        money -= 50
-                                        e.Q = 2
-                                        cl = 0
-                                elif e.F == 1:
-                                    if money > 169:
-                                        e.F = 2
-                                        e.I = loadify('grmn')
-                                        e.MI = loadify('tureetb')
-                                        e.ID = loadify('explodrt')
-                                        e.P = [50, 1, 1]
-                                        money -= 170
-                                        cl = 0
+                                elif e.MID == 2:
+                                    if e.F == 0:
+                                        if money > 49:
+                                            e.F += 1
+                                            if e.I == enginer:
+                                                e.I = loadify('engineer2')
+                                                e.MI = loadify('turret2b')
+                                            money -= 50
+                                            e.Q = 2
+                                            cl = 0
+                                    elif e.F == 1:
+                                        if money > 169:
+                                            e.F += 1
+                                            e.I = loadify('grmn')
+                                            e.MI = loadify('tureetb')
+                                            e.ID = loadify('explodrt')
+                                            e.P = [50, 1, 1]
+                                            money -= 170
+                                            cl = 0
 
-                            elif e.MID == 3:
-                                if e.F == 0:
-                                    if money > 69:
-                                        e.F = 1
-                                        e.c /= 2
-                                        money -= 70
-                                        cl = 0
-                                elif e.F == 1:
-                                    if money > 74:
-                                        e.F = 2
-                                        money -= 75
-                                        cl = 0
-                                elif e.F == 2:
-                                    if money > 299:
-                                        e.F = 3
-                                        money -= 300
-                                        inheriter=inheritor(random.randint(0,2),1+(e.LS-800)/1800,3)
-                                        inheriter.boost(e)
-                                        facinherit.append(inheriter)
-                                        inheriter.lists.append(facinherit)
-                                        cl = 0
-                            elif e.MID == 4:
-                                if e.F == 0:
-                                    if money > 199:
-                                        if e.f < 2:
-                                            e.I = loadify('double')
-                                        else:
-                                            e.I = loadify('doublewide')
-                                        e.F = 1
-                                        money -= 200
-                                        cl = 0
-                                elif e.F == 1:
-                                    if money > 199:
-                                        if e.f < 2:
-                                            e.I = loadify("triple")
-                                        else:
-                                            e.I = loadify('triplewide')
-
-                                        e.F = 2
-                                        money -= 200
-                                        cl = 0
-                                elif e.F == 2:
-                                    if money > 4499:
-                                        if e.f < 2:
-                                            e.I = loadify('tank')
-                                        else:
-                                            e.I = loadify('tankwide')
-                                        e.H += 3
-                                        e.dmg += 1
-                                        g = pygame.Surface.get_size(e.ID)
-                                        e.ID = pygame.transform.smoothscale(loadify('blcdrt'), (g[0], g[1]))
-                                        e.DS *= 3
-                                        e.F = 3
-                                        e.c /= 1.5
-                                        money -= 4500
-                                        cl = 0
-                            elif e.MID == 5:
-                                if e.F == 0:
-                                    if money > 39:
-                                        e.H += 10
-                                        money -= 40
-                                        if e.f == 3:
-                                            e.I = loadify('shadodruid2')
-                                        elif e.f == 0:
-                                            e.I = loadify('druid2')
-                                        elif e.f == 1:
-                                            e.I = loadify('druid3')
-                                        e.F = 1
-                                        cl = 0
-                                elif e.F == 1:
-                                    if money > 379:
-                                        money -= 380
-                                        e.DS += 1
-                                        e.D /= 1.2
-                                        e.c /= 1.75
-                                        for y in range(len(e.SPE)):
-                                            if e.SPE[y - 1] == 2:
-                                                e.SPE[y] += 0.2
-                                        if e.f == 3:
-                                            e.I = loadify('shadodruid3')
-                                        elif e.f == 0:
-                                            e.I = loadify('druid5')
-                                        else:
-                                            e.I = loadify('druid6')
-                                        e.F = 2
-                                        cl = 0
-                            elif e.MID == 6:
-                                if e.F == 0:
-                                    if money > 59:
-                                        e.U = 5
-                                        e.power=1
-                                        e.blow*=1.5
-                                        money -= 60
-                                        e.i = blow
-                                        e.I = blow
-                                        e.F = 1
-                                        cl = 0
-                        elif 900 > XX[1]:
-                            if e.MID == 1:
-                                if e.f == 0:
-                                    if money > 39:
-                                        e.f = 1
-                                        money -= 40
-                                        e.dmg += 1
-                                        cl = 0
-                                elif e.f == 1:
-                                    if money > 39:
-                                        e.c = e.c + 2
-                                        if e.F > 0:
-                                            e.DS /=2
-                                        e.DS -= 5
-                                        if e.DS < 2:
-                                            e.c = 10000000
-                                        if e.F > 0:
-                                            e.DS *=2
-                                        e.H += +2
-                                        e.f = 2
-                                        money -= 40
-                                        if e.F < 3:
-                                            e.I = loadify('beefdrtmonk')
-                                            e.ID = loadify('beefdrt')
-                                        cl = 0
-                                elif e.f == 2 and e.F < 3:
-                                    if money > 99:
-                                        for r in range(9):
-                                            r += 1
-                                            if e.F > 0:
-                                                r *= 2
-                                            if r * 1.5 < e.DS:
-                                                e.H += 1
+                                elif e.MID == 3:
+                                    if e.F == 0:
+                                        if money > 69:
+                                            e.F += 1
+                                            e.c /= 2
+                                            money -= 70
+                                            cl = 0
+                                    elif e.F == 1:
+                                        if money > 74:
+                                            e.F += 1
+                                            money -= 75
+                                            cl = 0
+                                    elif e.F == 2:
+                                        if money > 299:
+                                            e.F += 1
+                                            money -= 300
+                                            inheriter=inheritor(random.randint(0,2),1+(e.LS-800)/1800,3)
+                                            inheriter.boost(e)
+                                            facinherit.append(inheriter)
+                                            inheriter.lists.append(facinherit)
+                                            cl = 0
+                                elif e.MID == 4:
+                                    if e.F == 0:
+                                        if money > 199:
+                                            if e.f < 2:
+                                                e.I = loadify('double')
                                             else:
-                                                break
-                                        if e.F > 0:
-                                            e.DS += 4
-                                        else:
-                                            e.DS += 2
-                                        e.H += 3
-                                        e.f = 3
-                                        money -= 100
-                                        e.ID = loadify('beefyerdrt')
-                                        e.I = loadify('gorrila')
-                                        cl = 0
+                                                e.I = loadify('doublewide')
+                                            e.F += 1
+                                            money -= 200
+                                            cl = 0
+                                    elif e.F == 1:
+                                        if money > 199:
+                                            if e.f < 2:
+                                                e.I = loadify("triple")
+                                            else:
+                                                e.I = loadify('triplewide')
 
-                            elif e.MID == 2:
-                                if e.f == 0:
-                                    if money > 49:
-                                        e.f = 1
-                                        money -= 50
-                                        e.c -= e.c / 2.5
-                                        e.c = int(e.c)
-                                        if e.I == enginer:
-                                            e.I = loadify('engineer2')
-                                        cl = 0
-                                elif e.f == 1:
-                                    if money > 79:
-                                        e.f = 2
-                                        money -= 80
-                                        e.I = loadify('time')
-                                        e.MI = wata
-                                        e.SPE = [1, 1]
-                                        cl = 0
-
-                            elif e.MID == 3:
-                                if e.f == 0:
-                                    if money > 249:
-                                        e.f = 1
-                                        money -= 250
-                                        e.P = [35, 1, 1]
-                                        e.ID = loadify('mineS')
-                                        e.Dmg += 1
-                                        cl = 0
-                                elif e.f == 1:
-                                    if money > 999:
-                                        e.f = 2
-                                        money -= 1000
-                                        cl = 0
-                                        e.G = 0
-
-                            elif e.MID == 4:
-                                if e.f == 0:
-                                    if money > 299:
-                                        g = pygame.Surface.get_size(e.ID)
-                                        e.ID = pygame.transform.smoothscale(e.ID, (int(g[0] * 1.2), int(g[1] * 1.2)))
-                                        money -= 300
-                                        e.f += 1
-                                        e.H += 1
-                                        e.c *= 1.2
-                                        if e.DS > 7:
+                                            e.F += 1
+                                            money -= 200
+                                            cl = 0
+                                    elif e.F == 2:
+                                        if money > 4499:
+                                            if e.f < 2:
+                                                e.I = loadify('tank')
+                                            else:
+                                                e.I = loadify('tankwide')
+                                            e.H += 3
                                             e.dmg += 1
-                                        e.DS /= 1.2
-                                        cl = 0
-                                elif e.f == 1:
-                                    if money > 399:
-                                        if e.F == 0:
-                                            e.I = loadify("gunnerwide")
-                                        elif e.F == 1:
-                                            e.I = loadify("doublewide")
-                                        elif e.F == 2:
-                                            e.I = loadify("triplewide")
-                                        elif e.F == 3:
+                                            g = pygame.Surface.get_size(e.ID)
+                                            e.ID = pygame.transform.smoothscale(loadify('blcdrt'), (g[0], g[1]))
+                                            e.DS *= 3
+                                            e.F += 1
+                                            e.c /= 1.5
+                                            money -= 4500
+                                            e.locked[1] = 2
+                                            cl = 0
 
-                                            e.I = loadify("tankwide")
-                                        money -= 400
-                                        e.f += 1
-                                        e.DS *= 1.2
-                                        e.c /= 1.5
-                                        cl = 0
+                                elif e.MID == 5:
+                                    if e.F == 0:
+                                        if money > 39:
+                                            e.H += 10
+                                            money -= 40
+                                            if e.f == 3:
+                                                e.I = loadify('shadodruid2')
+                                            elif e.f == 0:
+                                                e.I = loadify('druid2')
+                                            elif e.f == 1:
+                                                e.I = loadify('druid3')
+                                            e.F += 1
+                                            cl = 0
+                                    elif e.F == 1:
+                                        if money > 379:
+                                            money -= 380
+                                            e.DS += 1
+                                            e.D /= 1.2
+                                            e.c /= 1.75
+                                            for y in range(len(e.SPE)):
+                                                if e.SPE[y - 1] == 2:
+                                                    e.SPE[y] += 0.2
+                                            if e.f == 3:
+                                                e.I = loadify('shadodruid3')
+                                            elif e.f == 0:
+                                                e.I = loadify('druid5')
+                                            else:
+                                                e.I = loadify('druid6')
+                                            e.F += 1
+                                            cl = 0
+                                elif e.MID == 6:
+                                    if e.F == 0:
+                                        if money > 59:
+                                            e.U = 5
+                                            e.power=1
+                                            e.blow*=1.5
+                                            money -= 60
+                                            e.i = blow
+                                            e.I = blow
+                                            e.F += 1
+                                            cl = 0
+                                elif e.MID == 7:
+                                    if e.F == 0:
+                                        if money > 149:
+                                            e.F += 1
+                                            e.I=loadify('wizard1')
+                                            money -= 150
+                                            e.attack=e.fireattack
+                                            e.ID=fireball
+                                            e.P = [110, 1, 1]
+                                            e.SPE.append([1,[1,50]])
+                                            cl = 0
+                        elif 900 > XX[1]:
+                            if e.locked[1] > e.f:
+                                if e.MID == 1:
+                                    if e.f == 0:
+                                        if money > 39:
+                                            e.f += 1
+                                            money -= 40
+                                            e.dmg += 1
+                                            cl = 0
+                                    elif e.f == 1:
+                                        if money > 39:
+                                            e.c = e.c + 2
+                                            if e.F > 0:
+                                                e.DS /=2
+                                            e.DS -= 5
+                                            if e.DS < 2:
+                                                e.c = 10000000
+                                            if e.F > 0:
+                                                e.DS *=2
+                                            e.H += +2
+                                            e.f += 1
+                                            money -= 40
+                                            if e.F < 3:
+                                                e.I = loadify('beefdrtmonk')
+                                                e.ID = loadify('beefdrt')
+                                            cl = 0
+                                    elif e.f == 2:
+                                        if money > 99:
+                                            for r in range(9):
+                                                r += 1
+                                                if e.F > 0:
+                                                    r *= 2
+                                                if r * 1.5 < e.DS:
+                                                    e.H += 1
+                                                else:
+                                                    break
+                                            if e.F > 0:
+                                                e.DS += 4
+                                            else:
+                                                e.DS += 2
+                                            e.H += 3
+                                            e.f += 1
+                                            e.locked[0]=2
+                                            money -= 100
+                                            e.ID = loadify('beefyerdrt')
+                                            e.I = loadify('gorrila')
+                                            cl = 0
 
-                                elif e.f == 2 and e.F<3:
-                                    if money > 1999:
+                                elif e.MID == 2:
+                                    if e.f == 0:
+                                        if money > 49:
+                                            e.f += 1
+                                            money -= 50
+                                            e.c -= e.c / 2.5
+                                            e.c = int(e.c)
+                                            if e.I == enginer:
+                                                e.I = loadify('engineer2')
+                                            cl = 0
+                                    elif e.f == 1:
+                                        if money > 79:
+                                            e.f += 1
+                                            money -= 80
+                                            e.I = loadify('time')
+                                            e.MI = wata
+                                            e.SPE = [1, 1]
+                                            cl = 0
 
-                                        e.I = loadify("gunnerjugger")
-                                        e.ID = loadify("juggerdrt")
-                                        money -= 2000-e.F*200
-                                        e.c = e.c/e.DS*38
-                                        e.DS = e.DS - 2
-                                        if e.DS < 5:
-                                            e.c = 10000000
-                                        e.H += 10
-                                        e.dmg+=10
-                                        e.f = 3
-                                        e.F=-1
-                                        e.f += 1
-                                        e.DS *= 1.2
-                                        e.c /= 1.5
-                                        cl = 0
+                                elif e.MID == 3:
+                                    if e.f == 0:
+                                        if money > 249:
+                                            e.f += 1
+                                            money -= 250
+                                            e.P = [35, 1, 1]
+                                            e.ID = loadify('mineS')
+                                            e.Dmg += 1
+                                            cl = 0
+                                    elif e.f == 1:
+                                        if money > 999:
+                                            e.f += 1
+                                            money -= 1000
+                                            cl = 0
+                                            e.G = 0
+
+                                elif e.MID == 4:
+                                    if e.f == 0:
+                                        if money > 299:
+                                            g = pygame.Surface.get_size(e.ID)
+                                            e.ID = pygame.transform.smoothscale(e.ID, (int(g[0] * 1.2), int(g[1] * 1.2)))
+                                            money -= 300
+                                            e.f += 1
+                                            e.H += 1
+                                            e.c *= 1.2
+                                            if e.DS > 7:
+                                                e.dmg += 1
+                                            e.DS /= 1.2
+                                            cl = 0
+                                    elif e.f == 1:
+                                        if money > 399:
+                                            if e.F == 0:
+                                                e.I = loadify("gunnerwide")
+                                            elif e.F == 1:
+                                                e.I = loadify("doublewide")
+                                            elif e.F == 2:
+                                                e.I = loadify("triplewide")
+                                            elif e.F == 3:
+
+                                                e.I = loadify("tankwide")
+                                            money -= 400
+                                            e.f += 1
+                                            e.DS *= 1.2
+                                            e.c /= 1.5
+                                            cl = 0
+
+                                    elif e.f == 2:
+                                        if money > 1999:
+
+                                            e.I = loadify("gunnerjugger")
+                                            e.ID = loadify("juggerdrt")
+                                            money -= 2000-e.F*200
+                                            e.c = e.c/e.DS*38
+                                            e.DS = e.DS - 2
+                                            if e.DS < 5:
+                                                e.c = 10000000
+                                            e.H += 10
+                                            e.dmg+=10
+                                            e.f = 3
+                                            e.f +=1
+                                            e.DS *= 1.2
+                                            e.c /= 1.5
+                                            e.locked[0] =0
+                                            cl = 0
 
 
-                            elif e.MID == 5:
-                                if e.f == 0:
-                                    if money > 49:
-                                        e.f = 1
-                                        money -= 50
-                                        e.SPE.append(3)
-                                        e.SPE.append(0)
-                                        if e.F == 0:
-                                            e.I = loadify('druid02')
-                                        elif e.F == 1:
-                                            e.I = loadify('druid3')
-                                        elif e.f == 1:
-                                            e.I = loadify('druid6')
-                                        e.dmg += 3
-                                        e.pierce = [1, 1]
-                                        e.H += 1
-                                        cl = 0
-                                elif e.f == 1:
-                                    if money > 89:
-                                        e.f = 2
-                                        money -= 90
-                                        e.bounce += 4
-                                        cl = 0
-                                elif e.f == 2:
-                                    if money > 749:
-                                        e.SPE.remove(3)
-                                        e.SPE.remove(0)
-                                        e.SPE.append(4)
-                                        e.SPE.append(0)
-                                        if e.F == 0:
-                                            e.I = loadify('shadodruid')
-                                        elif e.F == 1:
-                                            e.I = loadify('shadodruid2')
-                                        elif e.F == 2:
-                                            e.I = loadify('shadodruid3')
-                                        e.f = 3
-                                        money -= 90
-                                        e.bounce += 2
-                                        cl = 0
-                            elif e.MID == 6:
-                                if e.f == 0:
-                                    if money > 49:
-                                        e.f = 1
-                                        money -= 50
-                                        e.rang += 350-e.rang // 2
-                                        drtmonks.append(e)
-                                        e.i=nailmonk[0]
-                                        e.I = nailmonk[0]
-                                        e.c=15*(e.rang**2)/25000
-                                        e.price+=40
-                                        cl = 0
-                                elif e.f == 1:
-                                    if money > 399:
-                                        e.f = 2
-                                        money -= 400
-                                        e.Q+=3
-                                        e.i = nailmonk[1]
-                                        e.I = nailmonk[1]
-                                        e.dmg=2
-                                        e.COOL=-10000
-                                        e.price+=300
-                                        cl = 0
-                                elif e.f == 2:
-                                    if money > 2499:
-                                        e.f = 3
-                                        money -= 2500
-                                        e.Q=1
-                                        e.SPE=[2,[40,25]]
-                                        e.i = nailmonk[2]
-                                        e.I = nailmonk[2]
-                                        e.ID=firethrow
-                                        e.dmg=10
-                                        e.H+=6
-                                        e.price+=1900
-                                        cl = 0
+                                elif e.MID == 5:
+                                    if e.f == 0:
+                                        if money > 49:
+                                            e.f +=1
+                                            money -= 50
+                                            e.SPE.append(3)
+                                            e.SPE.append(0)
+                                            if e.F == 0:
+                                                e.I = loadify('druid02')
+                                            elif e.F == 1:
+                                                e.I = loadify('druid3')
+                                            elif e.f == 1:
+                                                e.I = loadify('druid6')
+                                            e.dmg += 3
+                                            e.pierce = [1, 1]
+                                            e.H += 1
+                                            cl = 0
+                                    elif e.f == 1:
+                                        if money > 89:
+                                            e.f +=1
+                                            money -= 90
+                                            e.bounce += 4
+                                            cl = 0
+                                    elif e.f == 2:
+                                        if money > 749:
+                                            e.SPE.remove(3)
+                                            e.SPE.remove(0)
+                                            e.SPE.append(4)
+                                            e.SPE.append(0)
+                                            if e.F == 0:
+                                                e.I = loadify('shadodruid')
+                                            elif e.F == 1:
+                                                e.I = loadify('shadodruid2')
+                                            elif e.F == 2:
+                                                e.I = loadify('shadodruid3')
+                                            e.f +=1
+                                            money -= 90
+                                            e.bounce += 2
+                                            cl = 0
+                                elif e.MID == 6:
+                                    if e.f == 0:
+                                        if money > 49:
+                                            e.f +=1
+                                            money -= 50
+                                            e.rang += 113-e.rang // 3
+                                            drtmonks.append(e)
+                                            e.i=nailmonk[0]
+                                            e.I = nailmonk[0]
+                                            e.c=15*(e.rang**2)/25000
+                                            e.price+=40
+                                            cl = 0
+                                    elif e.f == 1:
+                                        if money > 399:
+                                            e.f +=1
+                                            money -= 400
+                                            e.Q+=3
+                                            e.i = nailmonk[1]
+                                            e.I = nailmonk[1]
+                                            e.dmg=2
+                                            e.COOL=-10000
+                                            e.price+=300
+                                            cl = 0
+                                    elif e.f == 2:
+                                        if money > 2499:
+                                            e.f +=1
+                                            money -= 2500
+                                            e.Q=1
+                                            e.SPE=[2,[40,25]]
+                                            e.i = nailmonk[2]
+                                            e.I = nailmonk[2]
+                                            e.ID=firethrow
+                                            e.dmg=10
+                                            e.H+=6
+                                            e.price+=1900
+                                            cl = 0
+                                elif e.MID == 7:
+                                    if e.f == 0:
+                                        if money > 776:
+                                            money-=777
+                                            e.f += 1
+                                            stormwizes.append(e)
+                                            e.zaprange = e.rang // 2
+                                            e.zapdamage = 2+e.DS/5
+                                            e.zapamount = e.H
+                                            e.I = loadify('wizard02')
+                                            cl = 0
                         else:
-                            money += price
                             if e.MID == 1:
                                 drtmonks.remove(e)
                                 drtmunks.remove(e)
@@ -1504,6 +1772,9 @@ def upgrade():
                                 if e in drtmonks:
                                     drtmonks.remove(e)
                                 leafs.remove(e)
+                            elif e.MID == 7:
+                                drtmunks.remove(e)
+                                wizes.remove(e)
                             e.kill()
                             monks.remove(e)
                             del e
@@ -1526,91 +1797,41 @@ def menu():
     screen.blit(loadify('menu'), (0, 0))
 
 
-def menuAB(MT, UPGNUM, PGNUM):
-    if MT == 1:
-        if UPGNUM == 0:
-            screen.blit(loadify('menuspd'), (1100, 0))
-        elif UPGNUM == 1:
-            screen.blit(loadify('doubleshot'), (1100, 0))
-        elif PGNUM > 2:
+drtup=[loadify('menuspd'),loadify('doubleshot'),loadify('explodedrt'),loadify('incendiary')]
+enginup=[loadify('turretmenu'),loadify('gears'),]
+spikeup=[loadify('menFspikes'),loadify('crawls'),loadify('inherit')]
+gunup=[loadify('barrel'),loadify('barells'),loadify('tankmen')]
+druidup=[loadify('regrowth'),loadify('druidbook')]
+blowup=[loadify('powah')]
+wizeup=[loadify('firemen')]
+
+upgradeup=[drtup,enginup,spikeup,gunup,druidup,blowup,wizeup]
+
+#####################################################################
+#####################################################################
+#####################################################################
+
+drtdown=[loadify('sharper'),loadify('beefmen'),loadify('beefyermenu')]
+engindown=[loadify('spannermen'),loadify('timemen')]
+spikedown=[loadify('menmne'),loadify('minemen')]
+gundown=[loadify('larger'),loadify('greatbarrel'),loadify('juggermen')]
+druiddown=[loadify('brambles'),loadify('bouncy'),loadify('shadowcore')]
+blowdown=[loadify('nailing'),loadify('crowdmelter'),loadify('firehell')]
+wizedown=[loadify('lightning')]
+
+upgradedown=[drtdown,engindown,spikedown,gundown,druiddown,blowdown,wizedown]
+
+def menuAB(MT, UPGNUM, PGNUM,locked):
+    if UPGNUM<len(upgradeup[MT-1]):
+        if UPGNUM<locked[0]:
+            screen.blit(upgradeup[MT-1][UPGNUM], (1100, 0))
+        else:
             screen.blit(loadify('nope'), (1100, 0))
-        elif UPGNUM == 2:
-            screen.blit(loadify('explodedrt'), (1100, 0))
-        elif UPGNUM == 3:
-            screen.blit(loadify('incendiary'), (1100, 0))
-    if MT == 2:
-        if UPGNUM == 0:
-            screen.blit(loadify('turretmenu'), (1100, 0))
-        elif UPGNUM == 1:
-            screen.blit(loadify('gears'), (1100, 0))
-    if MT == 3:
-        if UPGNUM == 0:
-            screen.blit(loadify('menFspikes'), (1100, 0))
-        elif UPGNUM == 1:
-            screen.blit(loadify('crawls'), (1100, 0))
-        elif UPGNUM == 2:
-            screen.blit(loadify('inherit'), (1100, 0))
-    if MT == 4:
-        if UPGNUM == 0:
-            screen.blit(loadify('barrel'), (1100, 0))
-        elif UPGNUM == 1:
-            screen.blit(loadify('barells'), (1100, 0))
-        elif UPGNUM == 1:
-            screen.blit(loadify('barells'), (1100, 0))
-        elif UPGNUM == 2:
-            screen.blit(loadify('tankmen'), (1100, 0))
-    if MT == 5:
-        if UPGNUM == 0:
-            screen.blit(loadify('regrowth'), (1100, 0))
-        elif UPGNUM == 1:
-            screen.blit(loadify('druidbook'), (1100, 0))
-    if MT == 6:
-        if UPGNUM == 0:
-            screen.blit(loadify('powah'), (1100, 0))
-
-    if MT == 1:
-        if PGNUM == 0:
-            screen.blit(loadify('sharper'), (1100, 450))
-        elif PGNUM == 1:
-            screen.blit(loadify('beefmen'), (1100, 450))
-        elif UPGNUM > 2:
+    if PGNUM<len(upgradedown[MT-1]):
+        if PGNUM<locked[1]:
+            screen.blit(upgradedown[MT-1][PGNUM], (1100, 450))
+        else:
             screen.blit(loadify('nope'), (1100, 450))
-        elif PGNUM == 2:
-            screen.blit(loadify('beefyermenu'), (1100, 450))
-
-    if MT == 2:
-        if PGNUM == 0:
-            screen.blit(loadify('spannermen'), (1100, 450))
-        if PGNUM == 1:
-            screen.blit(loadify('timemen'), (1100, 450))
-
-    if MT == 3:
-        if PGNUM == 0:
-            screen.blit(loadify('menmne'), (1100, 450))
-        elif PGNUM == 1:
-            screen.blit(loadify('minemen'), (1100, 450))
-    if MT == 4:
-        if PGNUM == 0:
-            screen.blit(loadify('larger'), (1100, 450))
-        elif PGNUM == 1:
-            screen.blit(loadify('greatbarrel'), (1100, 450))
-        elif PGNUM == 2:
-            screen.blit(loadify('juggermen'), (1100, 450))
-    if MT == 5:
-        if PGNUM == 0:
-            screen.blit(loadify('brambles'), (1100, 450))
-        elif PGNUM == 1:
-            screen.blit(loadify('bouncy'), (1100, 450))
-        elif PGNUM == 2:
-            screen.blit(loadify('shadowcore'), (1100, 450))
-    if MT == 6:
-        if PGNUM == 0:
-            screen.blit(loadify('nailing'), (1100, 450))
-        if PGNUM == 1:
-            screen.blit(loadify('crowdmelter'), (1100, 450))
-        if PGNUM == 2:
-            screen.blit(loadify('firehell'), (1100, 450))
-
 
 branch = loadify("thorns")
 thorned = []
@@ -1708,7 +1929,7 @@ def pause():
 
 
 monksel = [loadify('drtmonk'), loadify('engineer')
-    , loadify('spikefac'), loadify('gunner'), loadify('smoldruid'),loadify('leafblower')]
+    , loadify('spikefac'), loadify('gunner'), loadify('smoldruid'),loadify('leafblower'),loadify('wizard2')]
 
 
 def death(x, y):
@@ -1726,7 +1947,7 @@ def death(x, y):
 
 io = 0
 
-
+tempimages2=[]
 TL = [loadify('turret'), loadify('turretb'), loadify('turret2b'), loadify('turret2')
     , loadify('tureetb'), loadify('tureet'), loadify('waterb'), loadify('water')]
 
@@ -1805,7 +2026,7 @@ def mapspecial2():
     global blntrac,images,extrax,factories,drts2
     images=[]
     blntrac=[blntrac[0],blntrac[1]]
-    for e in range(min(len(monks),6)):
+    for e in range(min(len(monks),6000)):
         theone=monks[random.randint(0,len(monks)-1)]
         if not blntrac[len(blntrac)-2]==theone.XX:
             blntrac.append(theone.XX)
@@ -1829,7 +2050,8 @@ def mapspecial2():
                     newpath = pygame.transform.rotate(newpathh, -90)
                 else:
                     newpath = pygame.transform.rotate(newpathh, 90)
-                extray = 70
+                extray = 0
+                extrax =70
             elif spdx > 0:
                 newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
             else:
@@ -1873,7 +2095,8 @@ def mapspecial2():
             newpath = pygame.transform.rotate(newpathh, -90)
         else:
             newpath = pygame.transform.rotate(newpathh, 90)
-        extray = 70
+        extray = 0
+        extrax = 70
     elif spdx > 0:
         newpath = pygame.transform.rotate(newpathh, -math.atan(spdy / spdx) * 180 / math.pi)
     else:
@@ -1930,8 +2153,8 @@ while chosen==0:
     nwl.Pump()
 yoggstoth=Bloon(50, 150, 1, 1, 1, 0, 1, 1, 0)
 yoggstoth.lists.append(bloons)
-bloons.append(yoggstoth)
-blns.append(yoggstoth)
+bloonsappend(yoggstoth)
+blnsappend(yoggstoth)
 yoggstoth.lists.append(blns)
 tempimages=[]
 boost=loadify('boost')
@@ -2011,6 +2234,16 @@ while running:
                                                       , 0, 0, 10 + random.randint(-5, 15), 1  # 10+random.randint(-9,10)
                                                       , 200 + random.randint(-120, 120), loadify('nail2'), -10, [0, 0],
                                                       [0, 0],random.randint(50, 250)/1000,random.randint(150, 550) ) )
+
+                    elif select == 6:
+                        if money > 79:
+                            money -= 80
+                            #DS=2-26 ,c=100-500 ,rang=200-900 ,h=2-6
+                            wizes.append(wizard(XX[0] - 60, XX[1] - 80, loadify('wizard')
+                                                      , 0, 0, 14 + random.randint(-12, 12), random.randint(2,6)
+                                                      , 300 + random.randint(-200, 200), loadify('scull'), -10, [0, 0],
+                                                      [],random.randint(200,900)))
+
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             XX = pygame.mouse.get_pos()
@@ -2180,6 +2413,11 @@ while running:
                     drts.append(druiddart)
                     break
 
+    for e in wizes:
+        e.attack()
+
+    for e in stormwizes:
+        e.storm()
 
     for b in drtmonks:
         if (ti - b.C) > b.c:
@@ -2381,6 +2619,10 @@ while running:
     engeneer()
     Factory()
     bloon()
+    for e in tempimages2:
+        screen.blit(e.I, (e.x, e.y))
+        if e.t<ti:
+            tempimages2.remove(e)
     hpshow(10, 10)
     screen.blit(loadify('select'), (40, 780))
     screen.blit(monksel[select], (50, 800))
@@ -2421,7 +2663,7 @@ while running:
     for e in drts2:
         if e.LS == ti:
             if e.CR > 1:
-                blns.append(e)
+                blnsappend(e)
                 e.n = blntrac
                 if e.f>len(e.n)-1:
                     e.f=len(e.n)-1
