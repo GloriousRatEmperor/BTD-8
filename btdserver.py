@@ -143,12 +143,12 @@ blnpower=[1,1.8,2.5,3.3,4,7,13,11,11,15,17,17,30,40,15,30,60]
 def rnd(b):
     global rn,players,nextround,ch,blnpower,roundsize
     if b==0:
-        roundsize=min(1500,rn*random.randint(4,120))
+        roundsize=min(600,rn*random.randint(4,120))
         nextround = 0
         rn+=1
     ch = 5
     regrow = random.choice([0, 1])
-    if rn > 60:
+    if rn > 55:
         ch = random.randint(10, 16)
         if ch > 12:
             if ch>14:
@@ -157,7 +157,7 @@ def rnd(b):
         else:
             ch=5
 
-    elif rn > 55:
+    elif rn > 50:
         ch = random.randint(10, 15)
         if ch > 12:
             if ch==15:

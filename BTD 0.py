@@ -14,6 +14,7 @@ with open("ip.txt", "r") as ip:
 
 connection.DoConnect((ipadress, 5071))
 blntrac=[]
+choosen=0
 class MyNetworkListener(ConnectionListener):
 
     def Network(self, data):
@@ -31,9 +32,10 @@ class MyNetworkListener(ConnectionListener):
         sendbloon(data["takedis"])
 
     def Network_mapchosen(self, data):
-        global btdmap,maps,chosen,blntrac,mapspecial
+        global btdmap,maps,chosen,blntrac,mapspecial,choosen
         btdmap=maps[(data["info"])[0]-1]
         chosen=100
+        choosen=(data["info"])[0]
         blntrac=blntracks[(data["info"])[0]-1]
         mapspecial=mapspecials[(data["info"])[0]-1]
 
@@ -44,6 +46,8 @@ nwl = MyNetworkListener()
 pygame.init()
 pygame.mixer.init()
 popping=pygame.mixer.Sound("bap.ogg")
+pop=pygame.mixer.Sound("pop.mp3")
+never=pygame.mixer.Sound("nevergonna.mp3")
 
 
 class player(object):
@@ -410,17 +414,25 @@ class druidball(Drt):
     def __init__(self, X, Y, S, s, I, H, x, y, P, SPE, DMG=1, bounce=0, pierce=[0, 0]):
         super().__init__(X, Y, S, s, I, H, x, y, P, SPE, DMG, bounce)
         self.pierce = pierce
-
+        self.img=I
+        self.spin=0
+        self.spinspd=2
+        if self.dmg == 2:
+            spiny.append(self)
     def special(self, loss):
-        global depleted,conntinue
+        global depleted,conntinue,spiny
         for c in range(len(self.SPE) // 2):
             if self.SPE[c * 2 - 2] == 2:
                 if self.pierce[0] < 1:
                     if self.H > 1:
                         if self.SPE[c * 2 - 1] > 1:
-                            self.a = pygame.transform.smoothscale(self.I, (
+                            self.img = pygame.transform.smoothscale(self.I, (
                             int(self.ss[0] * self.SPE[c * 2 - 1]), int(self.ss[1] * self.SPE[c * 2 - 1])))
-                            self.ss = self.ss = pygame.Surface.get_size(self.a)
+
+                            self.a = self.img
+                            self.ss = pygame.Surface.get_size(self.img)
+                            self.V=self.ss[0]//2
+                            self.C = self.ss[1]//2
                             self.pierce[1] += 1
                             self.dmg += 2
                         xplosions.append(
@@ -562,6 +574,23 @@ class Drt2(pygame.sprite.Sprite):
 yeano = 1
 rndbloon = []
 died=0
+def rickit():
+    # aaaaa bingo, tady se používá ten podezřelej rick.png a nevergonna.mp3
+    R=0
+    pygame.mixer.Sound.play(never, loops=-1)
+    while R==0:
+        rick= pygame.transform.smoothscale(loadify("rick"), (W, h))
+        screen.blit(rick, (0,0))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    pygame.mixer.fadeout(3000)
+                    R = 1
+
+
+
+
 cart=loadify('blooncart')
 lightning=loadify('lightining')
 balloon=[loadify('bigblue'),loadify('balloon')]
@@ -858,7 +887,7 @@ def bloonlist():
                          [13, 0.008*rn**2 + 50+rn, rn + 80, -101, [[4, 10]]],
                          [7, 0.16*rn**2 + 900+rn*28, rn * 15 + 1000, -100, [[4, 12]]],
                          [7,0.026*rn**2 + 250+rn*4,rn*10+150,-16,[[1,0]]],
-                         [5,0.26*rn**2 + 600+rn*25,rn*25+1500,-17,[[1,14]],-3],
+                         [5,0.26*rn**2 + 800+rn*25,rn*25+1500,-17,[[1,14]],-3],
                          [6, 0.8*rn**2 + 3800+rn*60, rn * 60 + 4800, -110, [[3, 12],[1,13]],0.9]]
 
     forms = [[0, 1, -2, [[2, 4]]], [9, 4, -3, [[1, 5], [1, 8]]], [10, 5, -4, [[1, 5], [4, 2]]],
@@ -1121,7 +1150,76 @@ class wizard(drtmonkey):
                         n.hploss((powah-60)*m.zapdamage/20)
 
                     forked=[]
+    def stormup(m):
+        global lightninin,tempimages
+        powah=random.randint(-6000,200)
+        if powah>70:
+            forked=[]
+            for p in bloons:
+                if distanceB(p.X, p.Y, m.X+m.ss[0]//2, m.Y+m.ss[1]//2, m.rang//2 + p.siz):
+                    for d in range(int(1 + (
+                            min((int((p.X + m.zaprange) // sqaresize), maxsqare)) - int(max(p.X - m.zaprange, 0) // sqaresize)))):
+                        for i in range(int(1 + (
+                                min(int((p.Y + m.zaprange) // sqaresize), 11) - int(max(p.Y - m.zaprange, 0) // sqaresize)))):
 
+                            skuare=sqares[int((max(e.X - m.zaprange, 0) + d * sqaresize) // sqaresize + (max(p.Y - m.zaprange, 0) + i * sqaresize) // sqaresize * maxsqare) - 1]
+                            for g in random.sample(skuare,min(m.zapamount//2+1,len(skuare))):
+                                if g not in forked:
+                                    forked.append(g)
+
+                    lastbing=[m.X+m.ss[0]//2, m.Y+m.ss[1]//2]
+                    last=[]
+                    for n in forked:
+                        if int(distanceC(n.X, n.Y, lastbing[0],lastbing[1])) > 0:
+                            xS = n.X - lastbing[0]
+                            yS = n.Y - lastbing[1]
+                            if xS == 0:
+                                spdx = 100
+                                spdy = 0
+                            else:
+                                spdx = 100 / math.sqrt(yS ** 2 / xS ** 2 + 1)
+                                if xS < 0:
+                                    spdx *= -1
+                                spdy = spdx * yS / xS
+                            width=int(2*(powah-60))
+                            norotl = pygame.transform.smoothscale(lightninin, (
+                                int(distanceC(n.X, n.Y, lastbing[0],
+                                              lastbing[1])), width))
+
+                            if spdx == 0:
+                                if spdy < 0:
+                                    lightnin = pygame.transform.rotate(norotl, -90)
+                                else:
+                                    lightnin = pygame.transform.rotate(norotl, 90)
+                                extray = width//2
+                            elif spdx > 0:
+                                lightnin = pygame.transform.rotate(norotl, -math.atan(spdy / spdx) * 180 / math.pi)
+                            else:
+                                lightnin = pygame.transform.rotate(norotl, 180 - math.atan(spdy / spdx) * 180 / math.pi)
+
+                            if spdx * spdy > 0:
+                                extray = math.sin(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * width//2
+                                extrax = math.cos(math.radians(90 - math.atan(spdy / spdx) * 180 / math.pi)) * width//2
+                            elif spdx * spdy < 0:
+                                extray = math.cos(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * width//2
+                                extrax = math.sin(math.radians(- math.atan(spdy / spdx) * 180 / math.pi)) * width//2
+                            if xS < 0:
+                                ximg = n.X
+                            else:
+                                ximg = lastbing[0]
+                            if yS < 0:
+                                yimg = n.Y
+                            else:
+                                yimg = lastbing[1]
+
+                            tempimages2.append(tempimage(lightnin, ximg - extrax, yimg - extray,5+ti))
+                            lastbing = [n.X , n.Y ]
+                        n.hploss((powah-60)*m.zapdamage/20)
+
+                    forked=[]
+
+            if powah>180:
+                drts.append(bluball())
 
 
 def drtM():
@@ -1161,7 +1259,6 @@ spe = [loadify('purple'), loadify('regpur'), loadify('blnSHA'), loadify('blnSH')
 health = 100
 ss = 0
 SS = 0
-
 def blnM():
     global health, bloon, blns, drts2, sqares, Bloondamage
     for e in blns:
@@ -1342,6 +1439,7 @@ def ready():
     # r = requests.post('http://' + ipadress + ':5000/sendready', headers=headers,
     #                   data=jsonpickle.encode([me.ID,1]))
 
+spiny=[]
 
 cl = 1
 blow=loadify('leafblowah')
@@ -1662,7 +1760,7 @@ def upgrade():
                                                 e.c = 10000000
                                             e.H += 10
                                             e.dmg+=10
-                                            e.f = 3
+                                            e.F=0
                                             e.f +=1
                                             e.DS *= 1.2
                                             e.c /= 1.5
@@ -1699,6 +1797,7 @@ def upgrade():
                                             e.SPE.remove(0)
                                             e.SPE.append(4)
                                             e.SPE.append(0)
+                                            e.ID=loadify('voidball')
                                             if e.F == 0:
                                                 e.I = loadify('shadodruid')
                                             elif e.F == 1:
@@ -1706,8 +1805,8 @@ def upgrade():
                                             elif e.F == 2:
                                                 e.I = loadify('shadodruid3')
                                             e.f +=1
-                                            money -= 90
-                                            e.bounce += 2
+                                            money -= 750
+                                            e.dmg=2
                                             cl = 0
                                 elif e.MID == 6:
                                     if e.f == 0:
@@ -1747,6 +1846,15 @@ def upgrade():
                                             cl = 0
                                 elif e.MID == 7:
                                     if e.f == 0:
+                                        if money > 49:
+                                            money-=50
+                                            e.f += 1
+                                            e.c /=1.6
+                                            e.price += 30
+                                            if e.F == 0:
+                                                e.I = loadify('wize')
+                                            cl = 0
+                                    elif e.f == 1:
                                         if money > 776:
                                             money-=777
                                             e.f += 1
@@ -1821,7 +1929,7 @@ spikedown=[loadify('menmne'),loadify('minemen')]
 gundown=[loadify('larger'),loadify('greatbarrel'),loadify('juggermen')]
 druiddown=[loadify('brambles'),loadify('bouncy'),loadify('shadowcore')]
 blowdown=[loadify('nailing'),loadify('crowdmelter'),loadify('firehell')]
-wizedown=[loadify('lightning')]
+wizedown=[loadify('souldrain'),loadify('lightning')]
 
 upgradedown=[drtdown,engindown,spikedown,gundown,druiddown,blowdown,wizedown]
 
@@ -2199,7 +2307,6 @@ while running:
                                                       , 0, 0, 10 + random.randint(-9, 10), 1  # 10+random.randint(-9,10)
                                                       , 200 + random.randint(-120, 120), loadify('drtn'), -10, [0, 0],
                                                       [0, 0]))
-                            pygame.mixer.Sound.play(popping)
                     elif select == 1:
                         if money > 74:
                             money -= 75
@@ -2245,14 +2352,15 @@ while running:
                             #DS=2-26 ,c=100-500 ,rang=200-900 ,h=2-6
                             wizes.append(wizard(XX[0] - 60, XX[1] - 80, loadify('wizard')
                                                       , 0, 0, 14 + random.randint(-12, 12), random.randint(2,6)
-                                                      , 300 + random.randint(-200, 200), loadify('scull'), -10, [0, 0],
+                                                      , 400 + random.randint(-200, 200), loadify('scull'), -10, [0, 0],
                                                       [],random.randint(200,900)))
 
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             XX = pygame.mouse.get_pos()
             if distanceB(XX[0], XX[1], 410, 403, 50):
-                xplosions.append(explode(380, 400, gold, 400))
+                if choosen==1:
+                    xplosions.append(explode(380, 400, gold, 400))
 
             for e in monks:
                 if distanceB(XX[0] - 60, XX[1] - 80, e.XX, e.YY, 50):
@@ -2271,6 +2379,8 @@ while running:
                     if e.CR > 1:
                         if e.LS > ti:
                             e.LS = ti + 1
+            if event.key == pygame.K_r:
+                rickit()
             if event.key == pygame.K_s:
                 lo += 1
             if event.key == pygame.K_d:
@@ -2683,6 +2793,17 @@ while running:
                 e.numbas=[]
             else:
                 e.die()
+
+
+    for e in spiny:
+
+        e.a=pygame.transform.rotate(e.img, e.spin)
+        e.spin+=e.spinspd
+
+        e.C=pygame.Surface.get_size(e.a)[1]//2
+        e.V = pygame.Surface.get_size(e.a)[0]//2
+        if e.spin==360:
+            e.spin=0
 
     for e in growbloon:
         if ti % (e.r * 3) == 0:
