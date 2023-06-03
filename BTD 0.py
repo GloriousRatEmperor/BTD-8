@@ -15,6 +15,10 @@ with open("ip.txt", "r") as ip:
 connection.DoConnect((ipadress, 5071))
 blntrac=[]
 choosen=0
+r=random.randint
+# def wee(int,innt):
+#     return (-innt)
+# random.randint=max
 class MyNetworkListener(ConnectionListener):
 
     def Network(self, data):
@@ -408,6 +412,8 @@ class Drt(pygame.sprite.Sprite):
         d.kill()
         depleted += 1
         drts.remove(d)
+        if (d in spiny):
+            spiny.remove(d)
         del d
 conntinue=0
 class druidball(Drt):
@@ -419,6 +425,7 @@ class druidball(Drt):
         self.spinspd=2
         if self.dmg == 2:
             spiny.append(self)
+
     def special(self, loss):
         global depleted,conntinue,spiny
         for c in range(len(self.SPE) // 2):
@@ -435,9 +442,10 @@ class druidball(Drt):
                             self.C = self.ss[1]//2
                             self.pierce[1] += 1
                             self.dmg += 2
+                        #.D is [time,regen speed]
                         xplosions.append(
                             explode(self.X, self.Y, self.a, self.D[1] / 7 * 30,
-                                    10.73 / self.D[1] * self.SPE[c * 2 - 1] * 4 / 7,
+                                    self.ss[0]/ self.D[1] * 7 / 30 / 3,
                                     0))
                         self.pierce[0] = self.pierce[1]
                         drts.remove(self)
@@ -790,7 +798,7 @@ class Bloon(pygame.sprite.Sprite):
             else:
                 e.H = e.HH
 
-
+noth=loadify('noth')
 class explode(pygame.sprite.Sprite):
     def __init__(self, X, Y, i, T, howfast=1, strt=60):
         super(explode, self).__init__()
@@ -808,7 +816,7 @@ class explode(pygame.sprite.Sprite):
         self.T = T
         self.S = howfast
         self.s = pygame.Surface.get_size(self.i)
-        self.I = loadify('noth')
+        self.I = noth
         self.t = 0
 
 timexplod=[]
@@ -1409,9 +1417,12 @@ income = 50
 def roundshow(x, y, l):
     dead = fint.render("round" + str(l), True, (0, 255, 0))
     screen.blit(dead, (x, y))
+lastframe=time.time()
 
+starttime=time.time()
 
 def hpshow(x, y):
+    global lastframe,starttime
     hhp = font.render("health:" + str(health), True, (0, 255, 0))
     screen.blit(hhp, (x, y))
     kii = font.render("money:" + str(int(money)), True, (0, 255, 0))
@@ -1419,6 +1430,9 @@ def hpshow(x, y):
     kii = font.render("income:" + str("{:.1f}".format(income)), True, (0, 255, 0))
     screen.blit(kii, (x, y + 50))
 
+    kii = font.render("fps:" + str(int((1/(time.time()- lastframe)))),True, (0, 255, 0))
+    screen.blit(kii, (x, y + 75))
+    lastframe=time.time()
 
 rn = 5
 speeed = 0
@@ -1601,7 +1615,7 @@ def upgrade():
                                             money -= 380
                                             e.DS += 1
                                             e.D /= 1.2
-                                            e.c /= 1.75
+                                            e.c /= 1.2
                                             for y in range(len(e.SPE)):
                                                 if e.SPE[y - 1] == 2:
                                                     e.SPE[y] += 0.2

@@ -3,6 +3,7 @@ import time
 import random
 from PodSixNet.Channel import Channel
 from PodSixNet.Server import Server
+
 import pygame
 import math
 countdown=-1
@@ -33,12 +34,11 @@ class player_channel(Channel):
             newplayer = player()
             players.append(newplayer)
             self.Send({"action": "gitplayer", "id": len(players)})
-        else:
-            self.Send({"action": "gitplayer", "id": 100000})
 
     def Network_send(self, data):
         for channel in self.server.all_channels:
             if channel is not self:
+
                 channel.Send({"action": "ugotbloonsmon", "takedis":data["what"]})
 
     def Network_mapchoose(self, data):
