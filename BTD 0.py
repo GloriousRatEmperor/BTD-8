@@ -1740,9 +1740,12 @@ def upgrade():
                                             money -= 300
                                             e.f += 1
                                             e.H += 1
-                                            e.c *= 1.2
-                                            if e.DS > 7:
+
+                                            if e.DS > 9:
                                                 e.dmg += 1
+                                                e.c *= 1.1
+                                            else:
+                                                e.c *= 1.2
                                             e.DS /= 1.2
                                             cl = 0
                                     elif e.f == 1:
@@ -1768,9 +1771,9 @@ def upgrade():
                                             e.I = loadify("gunnerjugger")
                                             e.ID = loadify("juggerdrt")
                                             money -= 2000-e.F*200
-                                            e.c = e.c/e.DS*38
+                                            e.c = e.c/e.DS*42
                                             e.DS = e.DS - 2
-                                            if e.DS < 5:
+                                            if e.DS < 6:
                                                 e.c = 10000000
                                             e.H += 10
                                             e.dmg+=10
@@ -2344,8 +2347,8 @@ while running:
                         if money > 249:
                             money -= 250
                             gunners.append(gunner(XX[0] - 60, XX[1] - 80, loadify('guner')
-                                                  , 0, 0, 6 + random.randint(-4, 4), 20 + random.randint(-12, 12)
-                                                  , loadify('drtn'), 1, [0, 0], [0, 0]))
+                                                  , 0, 0, 6 + random.randint(-4, 7), 20 + random.randint(-15, 15)
+                                                  , loadify('drtn'), random.randint(1, 2), [0, 0], [0, 0]))
                     elif select == 4:
                         if money > 49:
                             money -= 50
