@@ -2261,6 +2261,7 @@ mapspecials=[mapspecial1,mapspecial2]
 blntracks=[blntrac1,blntrac2]
 mapsel=1
 option=loadify("settingspannel")
+span=loadify('spanner')
 while chosen==0:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
@@ -2673,7 +2674,7 @@ while running:
                             spdx *= -1
                         spdy = spdx * yS / xS
 
-                    drts.append(Drt(b.X + 10, b.Y + 60, spdx, spdy, loadify('spanner'), 10, 0, 0, [0, 0], b.SPE))
+                    drts.append(Drt(b.X + 10, b.Y + 60, spdx, spdy, span, 10, 0, 0, [0, 0], b.SPE))
                     break
 
     screen.blit(btdmap, (0, 0))
