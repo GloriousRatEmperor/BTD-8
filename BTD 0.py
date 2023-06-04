@@ -2422,7 +2422,7 @@ while running:
                                 spdy = spdx * yS / xS
 
                             drts.append(
-                                mine(b.X + 10, b.Y + 60, spdx, spdy, 150 + rn, 0, 0, [1000, 10, 0], XX, [0, 0], 3))
+                                mine(b.X + 10, b.Y + 60, spdx, spdy, 150, 0, 0, [1500, 200, 0], XX, [0, 0], 300))
                             break
 
             if event.key == pygame.K_h:
