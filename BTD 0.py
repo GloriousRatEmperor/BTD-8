@@ -178,7 +178,7 @@ class gunner(pygame.sprite.Sprite):
         super(gunner, self).__init__()
         monks.append(self)
         self.c = c
-        self.dmg = 2
+        self.dmg = 3
         self.MID = 4
         self.locked = [10, 10]
         self.price = 225
@@ -2348,7 +2348,7 @@ while running:
                             money -= 250
                             gunners.append(gunner(XX[0] - 60, XX[1] - 80, loadify('guner')
                                                   , 0, 0, 6 + random.randint(-4, 7), 20 + random.randint(-15, 15)
-                                                  , loadify('drtn'), random.randint(1, 2), [0, 0], [0, 0]))
+                                                  , loadify('drtn'), 1, [0, 0], [0, 0]))
                     elif select == 4:
                         if money > 49:
                             money -= 50
