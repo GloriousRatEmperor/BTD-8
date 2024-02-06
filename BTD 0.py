@@ -1430,7 +1430,7 @@ def hpshow(x, y):
     kii = font.render("income:" + str("{:.1f}".format(income)), True, (0, 255, 0))
     screen.blit(kii, (x, y + 50))
 
-    kii = font.render("fps:" + str(int((1/(time.time()- lastframe)))),True, (0, 255, 0))
+    #kii = font.render("fps:" + str(int((1/(time.time()- lastframe)))),True, (0, 255, 0))
     screen.blit(kii, (x, y + 75))
     lastframe=time.time()
 
