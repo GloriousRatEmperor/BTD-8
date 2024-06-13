@@ -51,7 +51,6 @@ pygame.init()
 pygame.mixer.init()
 popping=pygame.mixer.Sound("bap.ogg")
 pop=pygame.mixer.Sound("pop.mp3")
-never=pygame.mixer.Sound("nevergonna.mp3")
 
 
 class player(object):
@@ -582,19 +581,6 @@ class Drt2(pygame.sprite.Sprite):
 yeano = 1
 rndbloon = []
 died=0
-def rickit():
-    # aaaaa bingo, tady se používá ten podezřelej rick.png a nevergonna.mp3
-    R=0
-    pygame.mixer.Sound.play(never, loops=-1)
-    while R==0:
-        rick= pygame.transform.smoothscale(loadify("rick"), (W, h))
-        screen.blit(rick, (0,0))
-        pygame.display.update()
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    pygame.mixer.fadeout(3000)
-                    R = 1
 
 
 
@@ -2397,8 +2383,6 @@ while running:
                     if e.CR > 1:
                         if e.LS > ti:
                             e.LS = ti + 1
-            if event.key == pygame.K_r:
-                rickit()
             if event.key == pygame.K_s:
                 lo += 1
             if event.key == pygame.K_d:
