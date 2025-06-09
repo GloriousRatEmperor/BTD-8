@@ -38,7 +38,6 @@ class player_channel(Channel):
     def Network_send(self, data):
         for channel in self.server.all_channels:
             if channel is not self:
-
                 channel.Send({"action": "ugotbloonsmon", "takedis":data["what"]})
 
     def Network_mapchoose(self, data):
@@ -62,6 +61,7 @@ class player_channel(Channel):
         nextround+=1
         if nextround==len(players):
             rnd(0)
+
 class cw_server(Server):
     channelClass = player_channel
 
@@ -70,6 +70,7 @@ class cw_server(Server):
         self.all_channels=[]
 
     def Connected(self, channel, addr):
+        print("connected")
         self.all_channels.append(channel)
     def tick(self, dt=0):
         self.Pump()
@@ -83,24 +84,11 @@ class tile(pygame.sprite.Sprite):
         self.I = I
         self.s = [100,100]
 playersID=0
-moobs=[]
-moobID=0
 
 def distanceC(eneX, eneY, bulX, bulY):
     distance = math.sqrt((math.pow(eneX - bulX, 2)) + (math.pow(eneY - bulY, 2)))
     return distance
-class moob(object):
-    def __init__(self):
-        global moobID
-        moobID+=1
-        self.ID=moobID
-        self.X=-20000 + 200 * random.randint(0, 200)
-        self.Y=-20000 + 200 * random.randint(0, 200)
-        self.difficulty=int((distanceC(self.X,self.Y,0,0))//500)
-        self.difficulty=self.difficulty*self.difficulty/50
-        if self.difficulty<0.5:
-            self.difficulty=0.5
-        self.enemies = min(10,max(int(self.difficulty*0.3),2))
+
 class player(object):
     def __init__(self):
         global playersID
@@ -202,8 +190,8 @@ def rnd(b):
 
 
 
-with open("ip.txt") as ip:
-    srvr = cw_server(localaddr=(ip.read(), 5071))
+with open("../../ip.txt") as ip:
+    srvr = cw_server(localaddr=(ip.read(), 5075))
 while True:
     srvr.tick()
     time.sleep(0.001)
